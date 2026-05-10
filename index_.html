@@ -1,0 +1,2267 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Beger Store Visit</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, where, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB-NrjaW70OlpXIz3vVtZw0OHJcA530EHw",
+  authDomain: "beger-store-visit.firebaseapp.com",
+  projectId: "beger-store-visit",
+  storageBucket: "beger-store-visit.firebasestorage.app",
+  messagingSenderId: "794984449803",
+  appId: "1:794984449803:web:ab37ef9b98a118d25c440e"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+window._db = db;
+window._fbCol    = (path) => collection(db, path);
+window._fbQuery  = (...args) => query(...args);
+window._fbOrderBy = orderBy;
+window._fbWhere  = where;
+window._fbAddDoc = (col, data) => addDoc(col, data);
+window._fbDelDoc = (path, id) => deleteDoc(doc(db, path, id));
+window._fbSnap   = onSnapshot;
+window._fbServerTs = serverTimestamp;
+window.dispatchEvent(new Event('fb-ready'));
+</script>
+<style>
+:root{
+  --blue:#0057A8;--blue2:#1A6FC4;--blue3:#E8F0FB;--blue4:#003E7E;
+  --green:#16A34A;--green2:#DCFCE7;--orange:#EA580C;--orange2:#FEF3C7;
+  --red:#DC2626;--red2:#FEE2E2;--bg:#F0F4FA;--sidebar:#0D2040;
+  --card:#fff;--text:#1A2236;--muted:#6B7A99;--border:#DDE4F0;
+  --shadow:0 2px 16px rgba(0,87,168,0.09);--radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ═══ SCREEN SYSTEM ═══ */
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* ═══ LOGIN ═══ */
+#screen-login{background:linear-gradient(135deg,#0D2040 0%,#0057A8 60%,#1A6FC4 100%);align-items:center;justify-content:center;padding:24px;}
+.login-box{background:white;border-radius:24px;padding:32px 28px;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,0.25);}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo-icon{width:64px;height:64px;background:var(--blue);border-radius:18px;display:inline-flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:12px;}
+.login-title{font-size:22px;font-weight:800;color:var(--text);}
+.login-sub{font-size:13px;color:var(--muted);margin-top:4px;}
+.role-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;}
+.role-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.role-card{border:2px solid var(--border);border-radius:14px;padding:18px 14px;text-align:center;cursor:pointer;transition:all .2s;}
+.role-card:hover{border-color:var(--blue);background:var(--blue3);}
+.role-card.selected{border-color:var(--blue);background:var(--blue3);}
+.role-card .rc-icon{font-size:32px;margin-bottom:8px;}
+.role-card .rc-title{font-size:14px;font-weight:700;color:var(--text);}
+.role-card .rc-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+.name-select{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 12px;font-family:'Sarabun',sans-serif;font-size:14px;color:var(--text);outline:none;margin-bottom:16px;transition:border-color .2s;}
+.name-select:focus{border-color:var(--blue);}
+.login-btn{width:100%;padding:14px;background:var(--blue);color:white;border:none;border-radius:12px;font-size:16px;font-weight:700;font-family:'Sarabun',sans-serif;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(0,87,168,0.30);}
+.login-btn:hover{background:var(--blue4);}
+.login-btn:disabled{opacity:.45;cursor:not-allowed;}
+.login-version{text-align:center;margin-top:16px;font-size:11px;color:var(--muted);}
+
+/* ═══ SALES APP ═══ */
+#screen-sales{background:var(--bg);}
+.sales-shell{width:100%;max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative;}
+
+/* Sales Header */
+.s-header{background:var(--blue);padding:18px 18px 22px;position:relative;overflow:hidden;}
+.s-header::after{content:'';position:absolute;right:-20px;bottom:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.06);}
+.s-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.s-logo{display:flex;align-items:center;gap:8px;}
+.s-logo-icon{width:32px;height:32px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.s-logo-text{color:white;font-size:15px;font-weight:700;}
+.s-logout{background:rgba(255,255,255,0.15);border:none;color:white;font-size:11px;padding:5px 10px;border-radius:8px;cursor:pointer;font-family:'Sarabun',sans-serif;}
+.s-user-row{display:flex;align-items:center;gap:10px;}
+.s-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.18);border:2px solid rgba(255,255,255,0.30);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.s-user-name{color:white;font-size:15px;font-weight:600;}
+.s-user-zone{color:rgba(255,255,255,0.65);font-size:12px;}
+.s-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,0.70);}
+
+/* Sales Tabs */
+.s-tabs{display:flex;background:white;border-bottom:1px solid var(--border);}
+.s-tab{flex:1;padding:12px 0;text-align:center;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;}
+.s-tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+
+/* Sales Content */
+.s-content{flex:1;overflow-y:auto;padding:16px 14px 24px;display:flex;flex-direction:column;gap:14px;}
+.s-content::-webkit-scrollbar{width:3px;}
+
+/* Cards */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;}
+.card-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+
+/* Form */
+.f-label{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;display:block;}
+.f-input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-family:'Sarabun',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color .2s;background:white;}
+.f-input:focus{border-color:var(--blue);}
+select.f-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237B8BAA' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.chip-group{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid var(--border);color:var(--muted);cursor:pointer;transition:all .2s;background:white;}
+.chip.selected{background:var(--blue);border-color:var(--blue);color:white;}
+
+/* Photo categories */
+.photo-cat{border:1.5px solid var(--border);border-radius:12px;overflow:hidden;}
+.photo-cat-header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg);}
+.photo-cat-info{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
+.photo-cat-num{width:24px;height:24px;border-radius:50%;background:var(--blue);color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.photo-cat-title{font-size:13px;font-weight:700;color:var(--text);}
+.photo-cat-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.photo-cat-count{font-size:10px;font-weight:700;color:var(--muted);background:white;border:1px solid var(--border);padding:2px 7px;border-radius:8px;white-space:nowrap;}
+.photo-cat-count.has-photos{color:var(--blue);border-color:var(--blue);background:var(--blue3);}
+.photo-cat-grid{display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px;min-height:0;}
+.photo-cat-grid:empty{padding:0;}
+.photo-thumb-sm{position:relative;width:56px;height:56px;border-radius:8px;overflow:hidden;flex-shrink:0;}
+.photo-thumb-sm img{width:100%;height:100%;object-fit:cover;cursor:pointer;}
+.photo-thumb-sm .photo-del{width:16px;height:16px;font-size:9px;top:2px;right:2px;}
+
+/* Photo grid */
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.photo-thumb{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#0D1B2E;}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;}
+.photo-del{position:absolute;top:3px;right:3px;width:20px;height:20px;background:rgba(220,38,38,0.85);border-radius:50%;border:none;color:white;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.add-photo-btn{aspect-ratio:1;border-radius:10px;border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:11px;gap:3px;background:var(--blue3);}
+.add-photo-btn .api{font-size:22px;}
+
+/* Location */
+.loc-row{display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--blue3);border-radius:10px;font-size:12px;color:var(--blue4);}
+.loc-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;box-shadow:0 0 0 3px rgba(22,163,74,0.20);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(22,163,74,0.20);}50%{box-shadow:0 0 0 6px rgba(22,163,74,0.08);}}
+
+.cl-group-label{font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.6px;text-transform:uppercase;padding:10px 4px 4px;border-top:1px solid var(--border);margin-top:2px;}
+.checklist .cl-group-label:first-child{border-top:none;padding-top:0;}
+.check-num{font-size:11px;font-weight:700;color:var(--muted);width:20px;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+.check-item.checked .check-num{color:var(--blue);}
+
+/* New checklist styles */
+.cl-section{margin-bottom:4px;}
+.cl-section-head{display:flex;align-items:center;gap:8px;padding:10px 0 6px;border-top:1px solid var(--border);font-size:12px;font-weight:700;color:var(--blue4);}
+.cl-section-head:first-child{border-top:none;padding-top:0;}
+.cl-item{padding:8px 0;border-bottom:1px solid var(--border);}
+.cl-item:last-child{border-bottom:none;}
+.cl-item-label{font-size:13px;color:var(--text);margin-bottom:6px;line-height:1.4;}
+.cl-item-label.required::after{content:' *';color:var(--red);font-size:10px;}
+.cl-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.cl-btn{padding:5px 14px;border-radius:8px;border:1.5px solid var(--border);background:white;font-size:12px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif;color:var(--muted);transition:all .18s;}
+.cl-btn.sel-pass{background:#DCFCE7;border-color:var(--green);color:var(--green);}
+.cl-btn.sel-fail{background:#FEE2E2;border-color:var(--red);color:var(--red);}
+.cl-btn.sel-yes{background:#DCFCE7;border-color:var(--green);color:var(--green);}
+.cl-btn.sel-no{background:#FEE2E2;border-color:var(--red);color:var(--red);}
+.cl-btn.sel-know{background:#DCFCE7;border-color:var(--green);color:var(--green);}
+.cl-btn.sel-notknow{background:#FEE2E2;border-color:var(--red);color:var(--red);}
+.cl-btn.sel-meet{background:#DBEAFE;border-color:var(--blue);color:var(--blue);}
+.cl-btn.sel-notmeet{background:#FEE2E2;border-color:var(--red);color:var(--red);}
+.cl-level-btns{display:flex;gap:4px;}
+.cl-level-btn{flex:1;padding:6px 4px;border-radius:8px;border:1.5px solid var(--border);background:white;font-size:11px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif;color:var(--muted);text-align:center;transition:all .18s;}
+.cl-level-btn.sel{background:var(--blue);border-color:var(--blue);color:white;}
+.cl-text{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-family:'Sarabun',sans-serif;font-size:13px;resize:none;outline:none;transition:border-color .2s;}
+.cl-text:focus{border-color:var(--blue);}
+.meet-name{margin-top:6px;width:100%;border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-family:'Sarabun',sans-serif;font-size:12px;outline:none;display:none;transition:border-color .2s;}
+.meet-name:focus{border-color:var(--blue);}
+
+/* Checklist */
+.checklist{display:flex;flex-direction:column;gap:0;}
+.check-item{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;border-radius:8px;}
+.check-item:last-child{border-bottom:none;}
+.check-item:active{background:var(--blue3);}
+.check-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;background:white;}
+.check-item.checked .check-box{background:var(--blue);border-color:var(--blue);}
+.check-tick{color:white;font-size:13px;font-weight:700;display:none;}
+.check-item.checked .check-tick{display:block;}
+.check-icon{font-size:18px;flex-shrink:0;}
+.check-label{font-size:14px;font-weight:500;color:var(--text);flex:1;}
+.check-item.checked .check-label{color:var(--blue);font-weight:600;}
+.check-count{font-size:10px;color:var(--muted);background:var(--bg);padding:2px 7px;border-radius:8px;}
+
+/* Buttons */
+.btn{border:none;outline:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-weight:600;font-size:14px;border-radius:10px;padding:10px 14px;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:5px;}
+.btn:active{transform:scale(.97);}
+.btn-blue{background:var(--blue);color:white;box-shadow:0 3px 12px rgba(0,87,168,0.25);}
+.btn-green{background:var(--green);color:white;box-shadow:0 3px 12px rgba(22,163,74,0.25);}
+.btn-ghost{background:var(--blue3);color:var(--blue);}
+.btn-sm{font-size:11px;padding:6px 10px;border-radius:7px;}
+.btn-full{width:100%;padding:14px;font-size:15px;border-radius:12px;}
+
+/* History */
+.visit-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.visit-item:last-child{border-bottom:none;}
+.vi-photos{display:flex;gap:4px;flex-shrink:0;}
+.vi-photo{width:48px;height:48px;border-radius:8px;background:var(--blue3);display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;}
+.vi-photo img{width:100%;height:100%;object-fit:cover;}
+.vi-info{flex:1;min-width:0;}
+.vi-store{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vi-meta{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+.vi-chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.vi-chip{font-size:10px;background:var(--blue3);color:var(--blue);padding:2px 7px;border-radius:6px;font-weight:600;}
+.vi-note{font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* Summary boxes */
+.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.sum-box{background:white;border-radius:12px;box-shadow:var(--shadow);padding:14px;text-align:center;}
+.sum-num{font-size:24px;font-weight:800;color:var(--blue);font-family:'IBM Plex Mono',monospace;}
+.sum-lbl{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* Save bar */
+.save-bar{padding:12px 14px 20px;background:white;border-top:1px solid var(--border);}
+.save-bar .btn{width:100%;padding:14px;font-size:15px;border-radius:12px;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,20,40,0.70);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.show{opacity:1;pointer-events:all;}
+.modal{background:white;border-radius:22px 22px 0 0;padding:20px 18px 32px;width:100%;max-width:430px;transform:translateY(30px);transition:transform .35s cubic-bezier(0.34,1.56,0.64,1);}
+.modal-overlay.show .modal{transform:translateY(0);}
+.modal-handle{width:38px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 16px;}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:14px;}
+.cr{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.cr:last-of-type{border-bottom:none;}
+.cr-l{color:var(--muted);}
+.cr-v{font-weight:600;text-align:right;max-width:62%;}
+.modal-photos{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;}
+.modal-photos .mp{width:70px;height:70px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--blue3);display:flex;align-items:center;justify-content:center;font-size:24px;}
+.modal-actions{display:flex;gap:10px;margin-top:16px;}
+
+/* Flash */
+.flash{position:fixed;inset:0;background:var(--green);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .3s;}
+.flash.show{opacity:1;}
+.flash .fck{font-size:68px;animation:pop .4s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes pop{from{transform:scale(0);}to{transform:scale(1);}}
+.flash p{color:white;font-size:20px;font-weight:700;margin-top:10px;}
+.flash small{color:rgba(255,255,255,0.80);font-size:12px;margin-top:4px;}
+
+/* Page */
+.s-page{display:none;}
+.s-page.active{display:block;}
+canvas#snap-c{display:none;}
+
+/* ═══ MANAGER APP ═══ */
+#screen-manager{background:var(--bg);flex-direction:row;}
+.m-sidebar{width:220px;min-height:100vh;background:var(--sidebar);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;height:100vh;z-index:50;}
+.m-main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+
+/* Sidebar */
+.ms-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.ms-logo-row{display:flex;align-items:center;gap:9px;}
+.ms-icon{width:34px;height:34px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;}
+.ms-title{color:white;font-size:14px;font-weight:700;}
+.ms-sub{color:rgba(255,255,255,0.40);font-size:9px;letter-spacing:.6px;text-transform:uppercase;margin-top:1px;}
+.ms-sect{padding:14px 12px 6px;font-size:9px;font-weight:700;color:rgba(255,255,255,0.28);letter-spacing:1.2px;text-transform:uppercase;}
+.ms-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:7px;margin:2px 7px;cursor:pointer;color:rgba(255,255,255,0.55);font-size:13px;font-weight:500;transition:all .18s;}
+.ms-item:hover{background:rgba(255,255,255,0.08);color:white;}
+.ms-item.active{background:var(--blue);color:white;}
+.ms-item .si{font-size:14px;width:18px;text-align:center;}
+.ms-divider{height:1px;background:rgba(255,255,255,0.07);margin:8px 12px;}
+.ms-user{padding:12px 14px;border-top:1px solid rgba(255,255,255,0.08);margin-top:auto;}
+.ms-uname{color:white;font-size:12px;font-weight:600;}
+.ms-urole{color:rgba(255,255,255,0.38);font-size:10px;margin-top:2px;}
+.ms-logout-btn{margin-top:8px;width:100%;padding:6px;background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.55);font-size:11px;border-radius:7px;cursor:pointer;font-family:'Sarabun',sans-serif;}
+
+/* Topbar */
+.m-topbar{background:white;border-bottom:1px solid var(--border);padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;}
+.m-topbar-title{font-size:15px;font-weight:700;}
+.m-topbar-r{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+
+/* Filter bar */
+.m-filterbar{background:white;border-bottom:1px solid var(--border);padding:10px 24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.flbl{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;}
+.fsel{border:1.5px solid var(--border);border-radius:7px;padding:6px 9px;font-size:12px;font-family:'Sarabun',sans-serif;color:var(--text);background:white;outline:none;cursor:pointer;}
+.fsel:focus{border-color:var(--blue);}
+.fclear{padding:6px 11px;border-radius:7px;border:none;background:var(--blue3);color:var(--blue);font-size:12px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif;}
+.rcount{margin-left:auto;font-size:12px;color:var(--muted);}
+
+/* Manager content */
+.m-content{padding:20px 24px;flex:1;}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.kpi{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;}
+.kpi-num{font-size:28px;font-weight:800;font-family:'IBM Plex Mono',monospace;line-height:1;}
+.kn-blue{color:var(--blue);}
+.kn-green{color:var(--green);}
+.kn-orange{color:var(--orange);}
+.kn-red{color:var(--red);}
+.kpi-label{font-size:11px;color:var(--muted);margin-top:5px;}
+.kpi-icon{font-size:20px;margin-bottom:8px;}
+.kbadge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;display:inline-block;margin-top:6px;}
+.kb-g{background:var(--green2);color:var(--green);}
+.kb-o{background:var(--orange2);color:var(--orange);}
+
+/* Charts */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.g3{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:16px;}
+.mcard{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;}
+.mcard-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.mcard-title{font-size:13px;font-weight:700;}
+.mcard-sub{font-size:11px;color:var(--muted);}
+
+/* Bar */
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.bar-row:last-child{margin-bottom:0;}
+.bar-name{font-size:11px;width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bar-track{flex:1;background:var(--bg);border-radius:3px;height:22px;overflow:hidden;}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--blue2));border-radius:3px;display:flex;align-items:center;padding:0 7px;transition:width .6s ease;}
+.bar-val{font-size:10px;font-weight:700;color:white;white-space:nowrap;}
+.bar-n{font-size:10px;color:var(--muted);width:24px;text-align:right;flex-shrink:0;}
+
+/* Province list */
+.prov-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.prov-row:last-child{border-bottom:none;}
+.prov-l{display:flex;align-items:center;gap:7px;}
+.prov-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.prov-c{font-weight:700;color:var(--blue);font-family:'IBM Plex Mono',monospace;font-size:12px;}
+
+/* Table */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;padding:8px 10px;border-bottom:2px solid var(--border);text-align:left;background:var(--bg);}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:var(--blue3);}
+.tbl-wrap{overflow-x:auto;}
+.sel-badge{display:inline-flex;align-items:center;gap:4px;background:var(--bg);padding:3px 7px;border-radius:7px;font-size:11px;}
+.sel-av{width:20px;height:20px;border-radius:50%;background:var(--blue3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--blue);}
+.pchip{display:inline-block;font-size:9px;font-weight:600;padding:2px 6px;border-radius:8px;background:var(--blue3);color:var(--blue);margin:1px;}
+.ph-strip{display:flex;gap:3px;}
+/* ── Lightbox ── */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.lightbox.show{opacity:1;pointer-events:all;}
+.lb-img{max-width:90vw;max-height:88vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.5);object-fit:contain;transition:transform .25s cubic-bezier(0.34,1.56,0.64,1);transform:scale(0.92);}
+.lightbox.show .lb-img{transform:scale(1);}
+.lb-close{position:fixed;top:18px;right:22px;background:rgba(255,255,255,0.15);border:none;color:white;font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.lb-close:hover{background:rgba(255,255,255,0.30);}
+.lb-nav{position:fixed;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:white;font-size:22px;width:44px;height:44px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.lb-nav:hover{background:rgba(255,255,255,0.30);}
+.lb-prev{left:16px;}.lb-next{right:16px;}
+.lb-info{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.60);color:white;font-size:12px;padding:6px 16px;border-radius:20px;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+.ph-box,.ph-mock{cursor:pointer;transition:opacity .2s;}
+.ph-box:hover,.ph-mock:hover{opacity:.80;}
+
+.pg-wrap{display:flex;gap:5px;margin-top:12px;justify-content:flex-end;}
+.pg-btn{padding:5px 9px;border-radius:6px;border:1.5px solid var(--border);background:white;font-size:11px;cursor:pointer;font-family:'Sarabun',sans-serif;}
+.pg-btn.active{background:var(--blue);border-color:var(--blue);color:white;font-weight:700;}
+.m-panel{display:none;}.m-panel.active{display:block;}
+.empty-state{text-align:center;padding:36px;color:var(--muted);}
+.empty-state .ei{font-size:36px;margin-bottom:8px;}
+
+@media(max-width:900px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .g2,.g3{grid-template-columns:1fr;}
+}
+@media(max-width:700px){
+  .m-sidebar{width:52px;}
+  .ms-title,.ms-sub,.ms-item span:not(.si),.ms-sect,.ms-uname,.ms-urole,.ms-logout-btn{display:none;}
+  .m-main{margin-left:52px;}
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .m-content{padding:14px 12px;}
+  .m-filterbar{padding:8px 12px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<div class="screen active" id="screen-login">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon" style="padding:4px;"><img src="data:image/png;base64,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" style="width:100%;height:100%;object-fit:contain;border-radius:8px;"></div>
+      <div class="login-title">Beger Store Visit</div>
+      <div class="login-sub">ระบบบันทึกการเยี่ยมร้านค้า</div>
+    </div>
+
+    <div class="role-label">เลือกบทบาทของคุณ</div>
+    <div class="role-cards">
+      <div class="role-card selected" id="rc-sales" onclick="selectRole('sales')">
+        <div class="rc-icon">🧑</div>
+        <div class="rc-title">PC SUPERvisor</div>
+        <div class="rc-sub">บันทึกการเยี่ยมร้าน</div>
+      </div>
+      <div class="role-card" id="rc-manager" onclick="selectRole('manager')">
+        <div class="rc-icon">👔</div>
+        <div class="rc-title">ผู้จัดการ</div>
+        <div class="rc-sub">ดูรายงานภาพรวม</div>
+      </div>
+    </div>
+
+    <div class="role-label" id="login-field-label">ชื่อผู้ใช้งาน</div>
+
+    <!-- Sales: dropdown -->
+    <select class="name-select" id="name-select" style="display:block;">
+      <option value="">-- เลือกชื่อ --</option>
+    </select>
+
+    <!-- Manager: password -->
+    <input type="password" class="name-select" id="manager-pass"
+      placeholder="รหัสผ่าน"
+      style="display:none;letter-spacing:4px;"
+      oninput="checkLoginBtn()"
+      onkeydown="if(event.key==='Enter')doLogin()">
+
+    <button class="login-btn" id="login-btn" onclick="doLogin()" disabled>เข้าสู่ระบบ</button>
+    <div class="login-version">v1.0 · Prototype · Beger Co., Ltd.</div>
+  </div>
+</div>
+
+<!-- ═══════════ SALES ═══════════ -->
+<div class="screen" id="screen-sales">
+<div class="sales-shell">
+
+  <div class="s-header">
+    <div class="s-header-top">
+      <div class="s-logo">
+        <div class="s-logo-icon" style="padding:2px;"><img src="data:image/png;base64,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" style="width:100%;height:100%;object-fit:contain;border-radius:8px;"></div>
+        <div class="s-logo-text">Beger Store Visit</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="s-date" id="s-clock">--:--</div>
+        <button class="s-logout" onclick="logout()">ออก</button>
+      </div>
+    </div>
+    <div class="s-user-row">
+      <div class="s-avatar">👤</div>
+      <div>
+        <div class="s-user-name" id="s-user-name">--</div>
+        <div class="s-user-zone" id="s-user-zone">--</div>
+      </div>
+      <div style="margin-left:auto;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.22);color:white;font-size:11px;font-weight:700;padding:4px 9px;border-radius:12px;" id="s-today-count">วันนี้ 0 ร้าน</div>
+    </div>
+  </div>
+
+  <div class="s-tabs">
+    <div class="s-tab active" onclick="sTab('record')">📷 บันทึกร้าน</div>
+    <div class="s-tab" onclick="sTab('history')">📋 ประวัติของฉัน</div>
+  </div>
+
+  <!-- PAGE: RECORD -->
+  <div class="s-page active" id="sp-record">
+  <div class="s-content">
+
+    <div class="card">
+      <div class="card-title">🏪 ข้อมูลร้านค้า</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+
+        <div>
+          <label class="f-label">🏬 ห้าง / Chain</label>
+          <select class="f-input" id="f-chain" onchange="filterBranch()">
+            <option value="">-- เลือกห้าง --</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="f-label">🗺️ จังหวัด</label>
+          <select class="f-input" id="f-province" onchange="filterBranch()">
+            <option value="">-- เลือกจังหวัด --</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="f-label">🏪 สาขา *</label>
+          <select class="f-input" id="f-branch" onchange="onBranchSelect()">
+            <option value="">-- เลือกสาขา --</option>
+          </select>
+        </div>
+
+        <div style="background:var(--blue3);border-radius:8px;padding:9px 12px;font-size:12px;display:none;" id="branch-info">
+          <div style="color:var(--muted);margin-bottom:2px;">PC Supervisor</div>
+          <div style="font-weight:700;color:var(--blue);" id="bi-sup">–</div>
+        </div>
+
+        <!-- hidden field for compatibility -->
+        <input type="hidden" id="f-store" value="">
+        <input type="hidden" id="f-type" value="">
+
+      </div>
+    </div>
+
+    <div class="card" id="checklist-card">
+      <div class="card-title">✅ เช็คลิสต์การเยี่ยม</div>
+      <!-- Progress bar -->
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+          <span style="font-size:12px;color:var(--muted);">ตอบแล้ว <strong id="check-done" style="color:var(--blue);">0</strong> / <strong id="check-total">0</strong> ข้อ</span>
+          <button onclick="resetChecklist()" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;">↺ รีเซ็ต</button>
+        </div>
+        <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+          <div id="check-progress" style="height:100%;background:linear-gradient(90deg,var(--blue),var(--blue2));border-radius:4px;width:0%;transition:width .4s;"></div>
+        </div>
+      </div>
+      <div id="checklist"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📸 รูปภาพ</div>
+
+      <!-- Photo categories -->
+      <div style="display:flex;flex-direction:column;gap:10px;" id="photo-categories">
+
+        <div class="photo-cat" data-cat="1">
+          <div class="photo-cat-header">
+            <div class="photo-cat-info">
+              <span class="photo-cat-num">1</span>
+              <div>
+                <div class="photo-cat-title">🏪 ภาพถ่ายร้านค้า</div>
+                <div class="photo-cat-sub">ภาพรวมหน้าร้าน ป้ายชื่อ</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <div class="photo-cat-count" id="cnt-1">0 รูป</div>
+              <button class="btn btn-ghost btn-sm" onclick="openCamCat(1)">📷</button>
+              <button class="btn btn-ghost btn-sm" onclick="openFileCat(1)">🖼</button>
+            </div>
+          </div>
+          <div class="photo-cat-grid" id="pg-1"></div>
+        </div>
+
+        <div class="photo-cat" data-cat="2">
+          <div class="photo-cat-header">
+            <div class="photo-cat-info">
+              <span class="photo-cat-num">2</span>
+              <div>
+                <div class="photo-cat-title">🎨 ภาพถ่ายเชลล์โชว์สินค้า</div>
+                <div class="photo-cat-sub">ชั้นวางสินค้า การจัดเรียง</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <div class="photo-cat-count" id="cnt-2">0 รูป</div>
+              <button class="btn btn-ghost btn-sm" onclick="openCamCat(2)">📷</button>
+              <button class="btn btn-ghost btn-sm" onclick="openFileCat(2)">🖼</button>
+            </div>
+          </div>
+          <div class="photo-cat-grid" id="pg-2"></div>
+        </div>
+
+        <div class="photo-cat" data-cat="3">
+          <div class="photo-cat-header">
+            <div class="photo-cat-info">
+              <span class="photo-cat-num">3</span>
+              <div>
+                <div class="photo-cat-title">📦 ภาพถ่ายกองโปร</div>
+                <div class="photo-cat-sub">การจัดกองโปรโมชั่น ดิสเพลย์</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <div class="photo-cat-count" id="cnt-3">0 รูป</div>
+              <button class="btn btn-ghost btn-sm" onclick="openCamCat(3)">📷</button>
+              <button class="btn btn-ghost btn-sm" onclick="openFileCat(3)">🖼</button>
+            </div>
+          </div>
+          <div class="photo-cat-grid" id="pg-3"></div>
+        </div>
+
+        <div class="photo-cat" data-cat="4">
+          <div class="photo-cat-header">
+            <div class="photo-cat-info">
+              <span class="photo-cat-num">4</span>
+              <div>
+                <div class="photo-cat-title">🖼️ ภาพถ่ายสื่อและจุดขาย</div>
+                <div class="photo-cat-sub">POSM ป้าย Banner Wobbler</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <div class="photo-cat-count" id="cnt-4">0 รูป</div>
+              <button class="btn btn-ghost btn-sm" onclick="openCamCat(4)">📷</button>
+              <button class="btn btn-ghost btn-sm" onclick="openFileCat(4)">🖼</button>
+            </div>
+          </div>
+          <div class="photo-cat-grid" id="pg-4"></div>
+        </div>
+
+        <div class="photo-cat" data-cat="5">
+          <div class="photo-cat-header">
+            <div class="photo-cat-info">
+              <span class="photo-cat-num">5</span>
+              <div>
+                <div class="photo-cat-title">👤 ภาพถ่ายพนักงาน PC</div>
+                <div class="photo-cat-sub">การแต่งกาย การปฏิบัติงาน</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <div class="photo-cat-count" id="cnt-5">0 รูป</div>
+              <button class="btn btn-ghost btn-sm" onclick="openCamCat(5)">📷</button>
+              <button class="btn btn-ghost btn-sm" onclick="openFileCat(5)">🖼</button>
+            </div>
+          </div>
+          <div class="photo-cat-grid" id="pg-5"></div>
+        </div>
+
+        <div class="photo-cat" data-cat="6">
+          <div class="photo-cat-header">
+            <div class="photo-cat-info">
+              <span class="photo-cat-num">6</span>
+              <div>
+                <div class="photo-cat-title">🏬 ภาพมุมกว้างแผนก</div>
+                <div class="photo-cat-sub">ภาพรวมพื้นที่แผนกสี</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <div class="photo-cat-count" id="cnt-6">0 รูป</div>
+              <button class="btn btn-ghost btn-sm" onclick="openCamCat(6)">📷</button>
+              <button class="btn btn-ghost btn-sm" onclick="openFileCat(6)">🖼</button>
+            </div>
+          </div>
+          <div class="photo-cat-grid" id="pg-6"></div>
+        </div>
+
+      </div>
+
+      <!-- total -->
+      <div style="margin-top:10px;padding:8px 10px;background:var(--blue3);border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;color:var(--blue);font-weight:600;">รูปทั้งหมด</span>
+        <span style="font-size:14px;font-weight:800;color:var(--blue);font-family:'IBM Plex Mono',monospace;" id="photo-total-count">0 รูป</span>
+      </div>
+
+      <video id="cam-v" autoplay playsinline style="display:none;width:100%;border-radius:10px;margin-top:10px;aspect-ratio:4/3;object-fit:cover;background:#0D1B2E;"></video>
+      <div id="cam-ctrl" style="display:none;flex-direction:column;gap:8px;margin-top:8px;">
+        <div style="font-size:12px;color:var(--muted);text-align:center;" id="cam-cat-label"></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-blue btn-sm" style="flex:1" onclick="snapPhoto()">📸 ถ่ายรูป</button>
+          <button class="btn btn-ghost btn-sm" onclick="closeCam()">✕ ปิด</button>
+        </div>
+      </div>
+      <input type="file" id="file-in" accept="image/*" multiple style="display:none" onchange="loadFiles(this)">
+      <canvas id="snap-c" style="display:none;"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📍 ตำแหน่ง GPS</div>
+      <div class="loc-row">
+        <div class="loc-dot"></div>
+        <span id="loc-text" style="flex:1;font-size:12px;">กำลังระบุ...</span>
+        <button class="btn btn-ghost btn-sm" onclick="getLoc()">🔄</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📝 บันทึกการเยี่ยม</div>
+      <textarea class="f-input" id="f-note" rows="3" placeholder="สรุปสิ่งที่พบ เช่น สต็อกน้อย / ดิสเพลย์ดี / นัดครั้งหน้า..."></textarea>
+    </div>
+  </div>
+
+  <div class="save-bar">
+    <button class="btn btn-green btn-full" onclick="openConfirm()">💾 บันทึกการเยี่ยมร้านค้า</button>
+  </div>
+  </div>
+
+  <!-- PAGE: HISTORY -->
+  <div class="s-page" id="sp-history">
+  <div class="s-content">
+    <div class="sum-grid">
+      <div class="sum-box"><div class="sum-num" id="sh-visits">0</div><div class="sum-lbl">การเยี่ยม</div></div>
+      <div class="sum-box"><div class="sum-num" id="sh-photos">0</div><div class="sum-lbl">รูปภาพ</div></div>
+      <div class="sum-box"><div class="sum-num" id="sh-today">0</div><div class="sum-lbl">วันนี้</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 ประวัติการเยี่ยม</div>
+      <div id="hist-list"><div class="empty-state"><div class="ei">🏪</div>ยังไม่มีข้อมูล</div></div>
+    </div>
+  </div>
+  </div>
+
+</div><!-- sales-shell -->
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="s-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto;">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📋 ยืนยันบันทึกการเยี่ยม</div>
+    <div class="modal-photos" id="modal-photos"></div>
+
+    <!-- ข้อมูลหลัก -->
+    <div style="background:var(--blue3);border-radius:10px;padding:12px;margin-bottom:12px;">
+      <div class="cr" style="border-color:rgba(0,87,168,0.15);"><span class="cr-l">🏪 ร้านค้า</span><span class="cr-v" id="mc-store" style="color:var(--blue);font-weight:700;">-</span></div>
+      <div class="cr" style="border-color:rgba(0,87,168,0.15);"><span class="cr-l">📍 GPS</span><span class="cr-v" id="mc-loc" style="font-size:11px;">-</span></div>
+      <div class="cr" style="border-color:rgba(0,87,168,0.15);"><span class="cr-l">📅 วันที่</span><span class="cr-v" id="mc-date" style="color:var(--blue);font-family:'IBM Plex Mono',monospace;">-</span></div>
+      <div class="cr" style="border-color:rgba(0,87,168,0.15);border-bottom:none;"><span class="cr-l">⏰ เวลา</span><span class="cr-v" id="mc-time" style="color:var(--blue);font-family:'IBM Plex Mono',monospace;">-</span></div>
+    </div>
+
+    <!-- สรุปเช็คลิสต์ -->
+    <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:8px;">✅ สรุปเช็คลิสต์</div>
+    <div id="mc-checklist-summary"></div>
+
+    <!-- หมายเหตุ -->
+    <div id="mc-note-wrap" style="display:none;margin-top:10px;">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:4px;">📝 บันทึก</div>
+      <div id="mc-note" style="font-size:12px;color:var(--text);background:var(--bg);padding:8px 10px;border-radius:8px;"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-green" style="flex:1" onclick="saveVisit()">✅ บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div class="flash" id="flash">
+  <div class="fck">✅</div>
+  <p>บันทึกสำเร็จ!</p>
+  <small id="flash-info"></small>
+</div>
+</div><!-- screen-sales -->
+
+<!-- ═══════════ MANAGER ═══════════ -->
+<div class="screen" id="screen-manager">
+
+  <!-- Sidebar -->
+  <div class="m-sidebar">
+    <div class="ms-logo">
+      <div class="ms-logo-row">
+        <div class="ms-icon" style="padding:2px;"><img src="data:image/png;base64,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" style="width:100%;height:100%;object-fit:contain;border-radius:8px;"></div>
+        <div><div class="ms-title">Store Visit</div><div class="ms-sub">BEGER · REPORT</div></div>
+      </div>
+    </div>
+    <div class="ms-sect">เมนูหลัก</div>
+    <div class="ms-item active" onclick="mNav('overview',this)"><span class="si">📊</span><span>ภาพรวม</span></div>
+    <div class="ms-item" onclick="mNav('seller',this)"><span class="si">👥</span><span>รายเซลล์</span></div>
+    <div class="ms-item" onclick="mNav('province',this)"><span class="si">🗺️</span><span>รายจังหวัด</span></div>
+    <div class="ms-item" onclick="mNav('store',this)"><span class="si">🏪</span><span>รายร้านค้า</span></div>
+    <div class="ms-divider"></div>
+    <div class="ms-sect">ข้อมูล</div>
+    <div class="ms-item" onclick="mNav('photos',this)"><span class="si">📷</span><span>คลังรูปภาพ</span></div>
+    <div class="ms-item" onclick="mExport()"><span class="si">📤</span><span>Export CSV</span></div>
+    <div class="ms-user">
+      <div class="ms-uname" id="m-user-name">--</div>
+      <div class="ms-urole" id="m-user-role">ผู้จัดการ</div>
+      <button class="ms-logout-btn" onclick="clearAllData()" style="background:rgba(220,38,38,0.18);color:#DC2626;margin-bottom:6px;">🗑️ ลบข้อมูลทั้งหมด</button>
+      <button class="ms-logout-btn" onclick="logout()">ออกจากระบบ</button>
+    </div>
+  </div>
+
+  <div class="m-main">
+    <!-- Topbar -->
+    <div class="m-topbar">
+      <div class="m-topbar-title">📊 ภาพรวมการเยี่ยมร้านค้า</div>
+      <div class="m-topbar-r">
+        <span id="m-clock">--/--/---- --:--</span>
+        <div style="background:var(--blue3);color:var(--blue);font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px;">👔 ผู้จัดการ</div>
+      </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="m-filterbar">
+      <span class="flbl">Filter:</span>
+      <select class="fsel" id="mf-seller" onchange="mApply()">
+        <option value="">👤 เซลล์ทั้งหมด</option>
+      </select>
+      <select class="fsel" id="mf-province" onchange="mApply()">
+        <option value="">🗺️ จังหวัดทั้งหมด</option>
+      </select>
+      <select class="fsel" id="mf-store" onchange="mApply()">
+        <option value="">🏪 ร้านทั้งหมด</option>
+      </select>
+      <select class="fsel" id="mf-period" onchange="mApply()">
+        <option value="month">📅 เดือนนี้</option>
+        <option value="week">สัปดาห์นี้</option>
+        <option value="today">วันนี้</option>
+        <option value="all">ทั้งหมด</option>
+      </select>
+      <button class="fclear" onclick="mClear()">✕ ล้าง</button>
+      <div class="rcount">แสดง <strong id="m-rcount">0</strong> รายการ</div>
+    </div>
+
+    <!-- Content -->
+    <div class="m-content">
+
+      <!-- PANEL: ภาพรวม -->
+      <div class="m-panel active" id="mp-overview">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-icon">🏪</div><div class="kpi-num kn-blue" id="mk-visits">0</div><div class="kpi-label">การเยี่ยมทั้งหมด</div><div class="kbadge kb-g" id="mk-v2">–</div></div>
+        <div class="kpi"><div class="kpi-icon">📷</div><div class="kpi-num kn-green" id="mk-photos">0</div><div class="kpi-label">รูปภาพทั้งหมด</div><div class="kbadge kb-g" id="mk-p2">–</div></div>
+        <div class="kpi"><div class="kpi-icon">🏬</div><div class="kpi-num kn-orange" id="mk-stores">0</div><div class="kpi-label">ร้านที่ครอบคลุม</div><div class="kbadge kb-o" id="mk-s2">–</div></div>
+        <div class="kpi"><div class="kpi-icon">👥</div><div class="kpi-num kn-red" id="mk-sellers">0</div><div class="kpi-label">เซลล์ที่ active</div><div class="kbadge kb-g" id="mk-se2">–</div></div>
+      </div>
+      <div class="g3">
+        <div class="mcard">
+          <div class="mcard-head"><div><div class="mcard-title">📊 การเยี่ยมรายเซลล์</div><div class="mcard-sub">เรียงมากไปน้อย</div></div></div>
+          <div id="m-chart-seller"></div>
+        </div>
+        <div class="mcard">
+          <div class="mcard-head"><div><div class="mcard-title">🗺️ รายจังหวัด</div><div class="mcard-sub">จำนวนร้าน</div></div></div>
+          <div id="m-chart-prov"></div>
+        </div>
+      </div>
+
+      <div class="mcard">
+        <div class="mcard-head">
+          <div><div class="mcard-title">📋 รายการเยี่ยมร้านค้า</div><div class="mcard-sub" id="m-table-sub">–</div></div>
+          <button onclick="mExport()" style="padding:5px 12px;background:var(--blue3);color:var(--blue);border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif;">📤 Export CSV</button>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr>
+              <th>วันที่ / เวลา</th><th>เซลล์</th><th>ร้านค้า</th>
+              <th>จังหวัด</th><th>เช็คลิสต์</th><th>รูป</th><th>บันทึก</th><th>รายละเอียดเช็คลิสต์</th>
+            </tr></thead>
+            <tbody id="m-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pg-wrap" id="m-pg"></div>
+      </div>
+      </div>
+
+      <!-- PANEL: รายเซลล์ -->
+      <div class="m-panel" id="mp-seller">
+      <div class="mcard">
+        <div class="mcard-head"><div><div class="mcard-title">👥 สรุปรายเซลล์</div><div class="mcard-sub">เปรียบเทียบผลการเยี่ยม</div></div></div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>เซลล์</th><th>เขต</th><th>เยี่ยมทั้งหมด</th><th>รูปภาพ</th><th>ร้านที่เยี่ยม</th><th>ล่าสุด</th></tr></thead>
+            <tbody id="seller-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mcard" style="margin-top:14px;">
+        <div class="mcard-head"><div><div class="mcard-title">📊 เปรียบเทียบจำนวนการเยี่ยม</div></div></div>
+        <div id="m-chart-seller2"></div>
+      </div>
+      </div>
+
+      <!-- PANEL: รายจังหวัด -->
+      <div class="m-panel" id="mp-province">
+      <div class="kpi-grid" id="prov-kpi-grid"></div>
+      <div class="mcard" style="margin-top:14px;">
+        <div class="mcard-head"><div><div class="mcard-title">🗺️ รายละเอียดรายจังหวัด</div></div></div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>จังหวัด</th><th>จำนวนการเยี่ยม</th><th>ร้านค้า</th><th>รูปภาพ</th><th>เซลล์ที่ดูแล</th></tr></thead>
+            <tbody id="prov-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      </div>
+
+      <!-- PANEL: รายร้านค้า -->
+      <div class="m-panel" id="mp-store">
+      <div class="mcard">
+        <div class="mcard-head"><div><div class="mcard-title">🏪 สรุปรายร้านค้า</div><div class="mcard-sub">เรียงตามจำนวนการเยี่ยม</div></div></div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>ร้านค้า</th><th>ประเภท</th><th>จังหวัด</th><th>เยี่ยมทั้งหมด</th><th>รูปภาพ</th><th>เยี่ยมล่าสุด</th></tr></thead>
+            <tbody id="store-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      </div>
+
+      <!-- PANEL: คลังรูปภาพ -->
+      <div class="m-panel" id="mp-photos">
+      <div class="mcard">
+        <div class="mcard-head"><div><div class="mcard-title">📷 คลังรูปภาพทั้งหมด</div><div class="mcard-sub" id="photo-gallery-sub">–</div></div></div>
+        <div id="photo-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:4px;"></div>
+      </div>
+      </div>
+
+    </div><!-- m-content -->
+  </div>
+</div><!-- screen-manager -->
+
+<script>
+/* ══════════════════════════════════
+   SHARED DATA & CONFIG
+══════════════════════════════════ */
+/* ══ BRANCH DATA ══ */
+const BRANCH_DATA = [
+  {sup:'สุกฤตา วิบูลย์',     province:'กรุงเทพมหานคร', chain:'Homepro',          branch:'HP พระราม3'},
+  {sup:'สุกฤตา วิบูลย์',     province:'กรุงเทพมหานคร', chain:'Homepro',          branch:'HP รัชดาภิเษก'},
+  {sup:'นภัสนันท์ นุกิจ',    province:'กรุงเทพมหานคร', chain:'Homepro',          branch:'HP พระราม 2'},
+  {sup:'สุกฤตา วิบูลย์',     province:'กรุงเทพมหานคร', chain:'Homepro',          branch:'HP แฟชั่นไอส์แลนด์'},
+  {sup:'สุกฤตา วิบูลย์',     province:'กรุงเทพมหานคร', chain:'Homepro',          branch:'HP เพลินจิต'},
+  {sup:'ชไมพร วรจักร์',      province:'สมุทรปราการ',   chain:'Homepro',          branch:'HP สุวรรณภูมิ'},
+  {sup:'ณัฐภาสรณ์ ศรีสวัสดิ์',province:'พิษณุโลก',     chain:'Homepro',          branch:'HP พิษณุโลก'},
+  {sup:'อรวรรณ สวัสดี',      province:'เชียงใหม่',     chain:'Homepro',          branch:'HP เชียงใหม่'},
+  {sup:'ชุติมันต์ ชัยชนะ',   province:'ภูเก็ต',        chain:'Homepro',          branch:'HP ภูเก็ต (ท่าฉลอง)'},
+  {sup:'ทวีโชค จันทร์นอก',   province:'นครปฐม',        chain:'Homepro',          branch:'HP นครปฐม'},
+  {sup:'ชไมพร วรจักร์',      province:'สมุทรปราการ',   chain:'Homepro',          branch:'HP เมกะบางนา'},
+  {sup:'นฤมล แหละหมัด',      province:'สงขลา',         chain:'Homepro',          branch:'HP หาดใหญ่ (กาญจนวนิช)'},
+  {sup:'ณัฐพล สิงห์โต',      province:'นครสวรรค์',     chain:'Homepro',          branch:'HP นครสวรรค์'},
+  {sup:'ณัฏฐ์วัฒน์ คำเกิด',  province:'อุบลราชธานี',  chain:'Homepro',          branch:'HP อุบลราชธานี'},
+  {sup:'ทวีโชค จันทร์นอก',   province:'กาญจนบุรี',     chain:'Homepro',          branch:'HP กาญจบุรี'},
+  {sup:'ณัฐภาสรณ์ ศรีสวัสดิ์',province:'แพร่',         chain:'Homepro',          branch:'HP แพร่'},
+  {sup:'กัฌปนาทมณี อนุมาตย์',province:'สระบุรี',       chain:'Homepro',          branch:'HP สระบุรี'},
+  {sup:'อภิมน ดินดำ',         province:'เพชรบูรณ์',     chain:'Homepro',          branch:'HP เพชรบูรณ์'},
+  {sup:'ณัฐภาสรณ์ ศรีสวัสดิ์',province:'ลำปาง',         chain:'Homepro',          branch:'HP ลำปาง'},
+  {sup:'กฤษดา รุ่งกิจคณธร',  province:'ประจวบคีรีขันธ์',chain:'Homepro',         branch:'HP ประจวบคีรีขันธ์'},
+  {sup:'ชุติมันต์ ชัยชนะ',   province:'ภูเก็ต',        chain:'Homepro',          branch:'HP ภูเก็ต (ถลาง)'},
+  {sup:'ชไมพร วรจักร์',      province:'สมุทรปราการ',   chain:'Homepro',          branch:'HP ศรีนครินทร์'},
+  {sup:'นภัสนันท์ นุกิจ',    province:'กรุงเทพมหานคร', chain:'Homepro',          branch:'HP จรัญสนิทวงศ์'},
+  {sup:'อนุชาติ วัชราเกียรติ',province:'ปทุมธานี',      chain:'Homepro',          branch:'HP รังสิตคลอง 4'},
+  {sup:'อนุชาติ วัชราเกียรติ',province:'ปทุมธานี',      chain:'Homepro',          branch:'HP ฟิวเจอร์ปาร์ครังสิต'},
+  {sup:'ชไมพร วรจักร์',      province:'กรุงเทพมหานคร', chain:'Homepro',          branch:'HP ลาดกระบัง'},
+  {sup:'อรวรรณ สวัสดี',      province:'เชียงใหม่',     chain:'Homepro',          branch:'HP เชียงใหม่ รวมโชค'},
+  {sup:'ชุติมันต์ ชัยชนะ',   province:'ภูเก็ต',        chain:'Homepro',          branch:'HP ภูเก็ต เจ้าฟ้า'},
+  {sup:'ณัฐภาสรณ์ ศรีสวัสดิ์',province:'ตาก',           chain:'Megahome',         branch:'Megahome แม่สอด'},
+  {sup:'กัฌปนาทมณี อนุมาตย์',province:'นครราชสีมา',    chain:'Megahome',         branch:'Megahome โคราช'},
+  {sup:'ชไมพร วรจักร์',      province:'สมุทรปราการ',   chain:'Megahome',         branch:'Megahome บางนาตราด'},
+  {sup:'ชไมพร วรจักร์',      province:'สมุทรปราการ',   chain:'Megahome',         branch:'Megahome บางพลี'},
+  {sup:'อรวรรณ สวัสดี',      province:'เชียงใหม่',     chain:'Megahome',         branch:'Megahome เชียงใหม่'},
+  {sup:'อภิมน ดินดำ',         province:'ขอนแก่น',       chain:'CRC',              branch:'TWD ขอนแก่น'},
+  {sup:'ศุทธสิทธิ์ เหมฤดี',  province:'ร้อยเอ็ด',      chain:'CRC',              branch:'TWD ร้อยเอ็ด'},
+  {sup:'ณัฐภาสรณ์ ศรีสวัสดิ์',province:'ตาก',           chain:'CRC',              branch:'TWD ตาก'},
+  {sup:'สุทธิพงษ์ บัวใหญ่',  province:'อุดรธานี',      chain:'CRC',              branch:'TWD อุดร'},
+  {sup:'อภิมน ดินดำ',         province:'ขอนแก่น',       chain:'CRC',              branch:'BnB มิตรภาพขอนแก่น'},
+  {sup:'เสกสัน พันธุ',        province:'ชลบุรี',        chain:'CRC',              branch:'TWD ชลบุรี'},
+  {sup:'กฤษดา รุ่งกิจคณธร',  province:'เพชรบุรี',      chain:'CRC',              branch:'TWD เพชรบุรี'},
+  {sup:'นภัสนันท์ นุกิจ',    province:'สมุทรปราการ',   chain:'CRC',              branch:'TWD สุขสวัสดิ์'},
+  {sup:'สุกฤตา วิบูลย์',     province:'กรุงเทพมหานคร', chain:'บุญถาวร',          branch:'BTV รัชดา 2000'},
+  {sup:'นภัสนันท์ นุกิจ',    province:'กรุงเทพมหานคร', chain:'บุญถาวร',          branch:'BTV ปิ่นเกล้า'},
+  {sup:'สุทธิพงษ์ บัวใหญ่',  province:'อุดรธานี',      chain:'โกลบอลเฮ้าส์',    branch:'SGH อุดรธานี'},
+  {sup:'มินท์มันตา จิโรจชัยเกียรติ',province:'ชลบุรี', chain:'โกลบอลเฮ้าส์',    branch:'SGH ชลบุรี'},
+  {sup:'กิติยาภรณ์ นีระมนต์',province:'นครพนม',        chain:'โกลบอลเฮ้าส์',    branch:'SGH นครพนม'},
+  {sup:'สุทธิพงษ์ บัวใหญ่',  province:'อุดรธานี',      chain:'โกลบอลเฮ้าส์',    branch:'SGH บ้านตาด'},
+  {sup:'กิติยาภรณ์ นีระมนต์',province:'สกลนคร',        chain:'โกลบอลเฮ้าส์',    branch:'SGH พังโคน'},
+  {sup:'ทวีโชค จันทร์นอก',   province:'พระนครศรีอยุธยา',chain:'โกลบอลเฮ้าส์',  branch:'SGH อยุธยา'},
+  {sup:'ก้องเกียรติ ช้อยชาญชัยกุล',province:'สตูล',   chain:'โกลบอลเฮ้าส์',    branch:'SGH สตูล'},
+  {sup:'ชุติมันต์ ชัยชนะ',   province:'ภูเก็ต',        chain:'โกลบอลเฮ้าส์',    branch:'SGH ภูเก็ต'},
+  {sup:'เสกสัน พันธุ',        province:'ปราจีนบุรี',    chain:'โกลบอลเฮ้าส์',    branch:'SGH กบินทร์บุรี'},
+  {sup:'สุทธิพงษ์ บัวใหญ่',  province:'อุดรธานี',      chain:'โกลบอลเฮ้าส์',    branch:'SGH หนองหาน'},
+  {sup:'ทานตะวัน ภูวรณ์',    province:'ระนอง',         chain:'โกลบอลเฮ้าส์',    branch:'SGH ระนอง'},
+  {sup:'ณัฐภาสรณ์ ศรีสวัสดิ์',province:'ตาก',           chain:'โกลบอลเฮ้าส์',    branch:'SGH แม่สอด (ใหม่)'},
+  {sup:'สุทธิพงษ์ บัวใหญ่',  province:'อุดรธานี',      chain:'ดูโฮม',            branch:'DH อุดรธานี'},
+  {sup:'เสกสัน พันธุ',        province:'ฉะเชิงเทรา',   chain:'ดูโฮม',            branch:'DH บางนา'},
+  {sup:'ชไมพร วรจักร์',      province:'สมุทรปราการ',   chain:'ดูโฮม',            branch:'DH เทพารักษ์'},
+  {sup:'ณัฐพล สิงห์โต',      province:'นครสวรรค์',     chain:'ดูโฮม',            branch:'DH นครสวรรค์'},
+  {sup:'กิติยาภรณ์ นีระมนต์',province:'มุกดาหาร',      chain:'ศิริมหาชัย',       branch:'SR มุกดาหาร'},
+  {sup:'ศุทธสิทธิ์ เหมฤดี',  province:'ร้อยเอ็ด',      chain:'Homeshop',         branch:'HS ร้อยเอ็ด'},
+  {sup:'ศุทธสิทธิ์ เหมฤดี',  province:'มหาสารคาม',     chain:'Homeshop',         branch:'HS พยัคฆภูมิพิสัย'},
+  {sup:'ปรัศนีย์ พิสุทธิเสรีวงศ์',province:'ระยอง',    chain:'ฮาร์ดแวร์เฮ้าส์', branch:'ฮาร์ดแวร์เฮาส์ ปลวกแดง'},
+];
+
+function initBranchDropdowns(){
+  const chains=[...new Set(BRANCH_DATA.map(b=>b.chain))].sort();
+  const fChain=document.getElementById('f-chain');
+  if(fChain){ fChain.innerHTML='<option value="">-- เลือกห้าง --</option>';
+    chains.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;fChain.appendChild(o);}); }
+  const provs=[...new Set(BRANCH_DATA.map(b=>b.province))].sort();
+  const fProv=document.getElementById('f-province');
+  if(fProv){ fProv.innerHTML='<option value="">-- เลือกจังหวัด --</option>';
+    provs.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;fProv.appendChild(o);}); }
+  filterBranch();
+}
+
+function filterBranch(){
+  const chain=document.getElementById('f-chain')?.value||'';
+  const prov=document.getElementById('f-province')?.value||'';
+  const filtered=BRANCH_DATA.filter(b=>(!chain||b.chain===chain)&&(!prov||b.province===prov));
+  const fBranch=document.getElementById('f-branch');
+  if(!fBranch) return;
+  const curBranch=fBranch.value;
+  fBranch.innerHTML='<option value="">-- เลือกสาขา --</option>';
+  filtered.forEach(b=>{const o=document.createElement('option');o.value=b.branch;o.textContent=b.branch;if(b.branch===curBranch)o.selected=true;fBranch.appendChild(o);});
+  // update province list based on chain
+  if(chain){
+    const availProvs=[...new Set(BRANCH_DATA.filter(b=>b.chain===chain).map(b=>b.province))].sort();
+    const fProv=document.getElementById('f-province');
+    if(fProv){const curP=fProv.value;fProv.innerHTML='<option value="">-- เลือกจังหวัด --</option>';
+      availProvs.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;if(p===curP)o.selected=true;fProv.appendChild(o);});}
+  }
+  onBranchSelect();
+}
+
+function onBranchSelect(){
+  const branch=document.getElementById('f-branch')?.value||'';
+  const info=BRANCH_DATA.find(b=>b.branch===branch);
+  const infoBox=document.getElementById('branch-info');
+  if(info){
+    if(infoBox){infoBox.style.display='block';document.getElementById('bi-sup').textContent=info.sup;}
+    document.getElementById('f-store').value=info.branch;
+    document.getElementById('f-type').value=info.chain;
+    const fProv=document.getElementById('f-province');
+    if(fProv&&!fProv.value){fProv.value=info.province;}
+  } else {
+    if(infoBox) infoBox.style.display='none';
+    document.getElementById('f-store').value='';
+    document.getElementById('f-type').value='';
+  }
+}
+
+const SELLERS = [
+  {id:'S01',name:'ณัฐภาสรณ์ ศรีสวัสดิ์',   initials:'ณภ',zone:'พิษณุโลก / แพร่ / ลำปาง / ตาก',role:'sales'},
+  {id:'S02',name:'สุทธิพงษ์ บัวใหญ่',        initials:'สพ',zone:'อุดรธานี',role:'sales'},
+  {id:'S03',name:'อภิมน ดินดำ',               initials:'อภ',zone:'ขอนแก่น / เพชรบูรณ์',role:'sales'},
+  {id:'S04',name:'เสกสัน พันธุ',              initials:'สก',zone:'ชลบุรี / ปราจีนบุรี',role:'sales'},
+  {id:'S05',name:'กฤษดา รุ่งกิจคณธร',        initials:'กฤ',zone:'ประจวบฯ / เพชรบุรี',role:'sales'},
+  {id:'S06',name:'นภัสนันท์ นุกิจ',           initials:'นน',zone:'กรุงเทพฯ ตะวันตก',role:'sales'},
+  {id:'S07',name:'สุกฤตา วิบูลย์',            initials:'สก',zone:'กรุงเทพฯ กลาง',role:'sales'},
+  {id:'S08',name:'มินท์มันตา จิโรจชัยเกียรติ',initials:'มน',zone:'ชลบุรี (Global)',role:'sales'},
+  {id:'S09',name:'กิติยาภรณ์ นีระมนต์',       initials:'กต',zone:'นครพนม / สกลนคร / มุกดาหาร',role:'sales'},
+  {id:'S10',name:'ทวีโชค จันทร์นอก',          initials:'ทว',zone:'นครปฐม / กาญจนบุรี / อยุธยา',role:'sales'},
+  {id:'S11',name:'ก้องเกียรติ ช้อยชาญชัยกุล', initials:'กก',zone:'สตูล',role:'sales'},
+  {id:'S12',name:'ชุติมันต์ ชัยชนะ',          initials:'ชต',zone:'ภูเก็ต',role:'sales'},
+  {id:'S13',name:'ทานตะวัน ภูวรณ์',           initials:'ทน',zone:'ระนอง',role:'sales'},
+  {id:'S14',name:'ชไมพร วรจักร์',             initials:'ชพ',zone:'สมุทรปราการ',role:'sales'},
+  {id:'S15',name:'ณัฐพล สิงห์โต',             initials:'ณพ',zone:'นครสวรรค์',role:'sales'},
+  {id:'S16',name:'ศุทธสิทธิ์ เหมฤดี',         initials:'ศส',zone:'ร้อยเอ็ด / มหาสารคาม',role:'sales'},
+  {id:'S17',name:'ปรัศนีย์ พิสุทธิเสรีวงศ์',  initials:'ปร',zone:'ระยอง',role:'sales'},
+];
+const MANAGERS = [
+  {id:'M01',name:'ธนพล รักงาน',zone:'ผู้จัดการภาคกลาง',role:'manager'},
+  {id:'M02',name:'ศิริพร วงศ์ดี',zone:'ผู้จัดการภาคเหนือ',role:'manager'},
+];
+const PROVINCES = ['ปทุมธานี','นนทบุรี','อยุธยา','กรุงเทพฯ','สระบุรี','ลพบุรี'];
+const STORE_NAMES = ['ร้านศิริวัสดุ','ร้านมั่งมีสี','ร้านสยามก่อสร้าง','ร้านพิชิตสี','ร้านรุ่งโรจน์วัสดุ','ร้านสมบูรณ์สี','ร้านไทยวัสดุ','ร้านชัยวัฒน์','ร้านดีเจวัสดุ','ร้านอุดมสี','ร้านเจริญทรัพย์','ร้านวิไลสี','ร้านพรชัยวัสดุ'];
+const PURPOSES_LIST = ['📦 ตรวจสต็อก','🖼 ตรวจดิสเพลย์','💰 เก็บเงิน','🤝 แนะนำสินค้า','📋 รับออเดอร์','🔧 แก้ปัญหา'];
+const CHECKLIST_SECTIONS = [
+  { id:'s1', icon:'⏰', title:'Time Attendance', items:[
+    {id:'s1_1', label:'บันทึกเวลาเข้า-ออกถูกต้องตามกฎบริษัทและห้าง', type:'pf'},
+    {id:'s1_2', label:'PC ยืนประจำหน้าร้านตามพื้นที่ความรับผิดชอบ', type:'pf'},
+  ]},
+  { id:'s2', icon:'👔', title:'PC Appearance & Uniform', items:[
+    {id:'s2_1', label:'การแต่งกาย (ทรงผม, รองเท้า, การแต่งหน้า, เล็บ, รอยสัก) สุภาพ สะอาด เรียบร้อย', type:'pf'},
+  ]},
+  { id:'s3', icon:'🎯', title:'Sell-out Target & Commission', items:[
+    {id:'s3_1', label:'PC รับทราบเป้าหมาย Sell-out Target ประจำเดือน', type:'kn'},
+    {id:'s3_2', label:'PC เข้าใจค่าคอมมิชชั่นและ Incentive', type:'kn'},
+  ]},
+  { id:'s4', icon:'📦', title:'สินค้า', items:[
+    {id:'s4_1', label:'การจัดเรียง Product On Shelf เต็มพื้นที่และสวยงาม', type:'pf'},
+    {id:'s4_2', label:'Stock สินค้าเพียงพอต่อการขาย', type:'pf'},
+    {id:'s4_note', label:'ข้อเสนอแนะเพิ่มเติม', type:'text'},
+  ]},
+  { id:'s5', icon:'🏷️', title:'โปรโมชั่น', items:[
+    {id:'s5_1', label:'PC รับทราบโปรโมชั่นของบริษัทฯ', type:'kn'},
+    {id:'s5_2', label:'PC ให้ข้อมูลโปรโมชั่นบริษัทและห้างได้ถูกต้อง', type:'pf'},
+    {id:'s5_3', label:'PC ทราบโปรโมชั่นของคู่แข่ง', type:'pf'},
+    {id:'s5_note', label:'ข้อเสนอแนะเพิ่มเติม', type:'text'},
+  ]},
+  { id:'s6', icon:'🖼️', title:'POSM & Display', items:[
+    {id:'s6_1', label:'มี Catalogue / โบรชัวร์สินค้า', type:'yn'},
+    {id:'s6_2', label:'สื่อส่งเสริมการขาย (ป้ายราคา, Tent card, Banner, Wobbler, TV) ครบถ้วน', type:'pf'},
+    {id:'s6_3', label:'มีพื้นที่โปรโมชั่น / กองดิสเพลย์ Beger', type:'yn'},
+    {id:'s6_note', label:'ข้อเสนอแนะเพิ่มเติม', type:'text'},
+  ]},
+  { id:'s7', icon:'🎨', title:'เครื่องผสมสี', items:[
+    {id:'s7_1', label:'มีเครื่องผสมสีในสาขา', type:'yn'},
+    {id:'s7_2', label:'เครื่องผสมสีอยู่ในสภาพดีพร้อมใช้งาน', type:'pf'},
+    {id:'s7_3', label:'ฟองน้ำทำความสะอาดหัวแม่สีอยู่ในสภาพดี', type:'pf'},
+    {id:'s7_4', label:'ระดับแม่สีในระบบพร้อมใช้งาน', type:'pf'},
+    {id:'s7_5', label:'มีสติ๊กเกอร์สีผสม', type:'yn'},
+    {id:'s7_note', label:'ข้อเสนอแนะเพิ่มเติม', type:'text'},
+  ]},
+  { id:'s8', icon:'📚', title:'ความรู้สินค้าและทักษะการขาย', items:[
+    {id:'s8_level', label:'ระดับความรู้สินค้าและทักษะการขายของ PC', type:'level'},
+    {id:'s8_note', label:'ข้อเสนอแนะ / อยากให้เสริมความรู้ประเภทใด', type:'text'},
+  ]},
+  { id:'s9', icon:'🤝', title:'การเข้าพบ', items:[
+    {id:'s9_1', label:'หัวหน้าแผนก', type:'meet'},
+    {id:'s9_2', label:'ผู้จัดการสาขา', type:'meet'},
+    {id:'s9_3', label:'ฝ่ายขายโครงการสาขา', type:'meet'},
+    {id:'s9_note', label:'ข้อเสนอแนะเพิ่มเติมจากสาขา', type:'text'},
+  ]},
+  { id:'s10', icon:'⚠️', title:'ปัญหาที่พบหรือข้อเสนอแนะ', items:[
+    {id:'s10_note', label:'ปัญหาที่พบหรือข้อเสนอแนะ', type:'text'},
+  ]},
+];
+// flat list for backward compat
+const CHECKLIST_ALL = CHECKLIST_SECTIONS.flatMap(s=>s.items.filter(i=>i.type!=='text'&&i.type!=='level'&&i.type!=='meet').map(i=>({...i,group:s.id})));
+const NOTES = ['สต็อกสีขาวเหลือน้อย แนะนำสั่งเพิ่ม','ดิสเพลย์ตรงทางเข้าร้าน ลูกค้าสนใจมาก','เจ้าของร้านสนใจสีรุ่นใหม่','รับออเดอร์สีทาบ้าน 50 ถัง','แก้ปัญหาสีล็อตเก่าไม่ตรง','เก็บเงินค้างจ่าย 15,000 บาท','','',''];
+const EMOJIS = ['🏪','🎨','🏬','🛒','🏗️'];
+
+const NOW = new Date();
+function p(n){return String(n).padStart(2,'0');}
+function fmtD(d){return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()}`;}
+function fmtT(d){return `${p(d.getHours())}:${p(d.getMinutes())}`;}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+
+/* ── Firebase record loader ── */
+let allRecords = [];
+let myRecords  = [];
+let _managerUnsubscribe = null;
+
+function _parseFirestoreRec(docSnap){
+  const d = docSnap.data();
+  const date = d.ts ? d.ts.toDate() : new Date(d.dateStr.split('/').reverse().join('-'));
+  return {
+    _docId: docSnap.id,
+    id: d.id || docSnap.id,
+    date, dateStr: d.dateStr, timeStr: d.timeStr,
+    seller: d.seller, store: d.store, storeType: d.storeType,
+    chain: d.chain||'', province: d.province,
+    purposes: d.purposes||[], checklist: d.checklist||{values:{},notes:{}},
+    note: d.note||'', numPhotos: d.numPhotos||0,
+    photos: d.photos||[], photosByCat: d.photosByCat||{},
+    emoji:'🏪', source:'real'
+  };
+}
+
+async function fbLoadMyRecords(){
+  try {
+    const q = window._fbQuery(
+      window._fbCol('store_visits'),
+      window._fbWhere('seller.id','==', currentUser.id),
+      window._fbOrderBy('ts','desc')
+    );
+    const snap = await new Promise(res => {
+      const unsub = window._fbSnap(q, s => { unsub(); res(s); });
+    });
+    myRecords = snap.docs.map(_parseFirestoreRec);
+    renderHistory();
+    const todayStr = fmtD(new Date());
+    document.getElementById('s-today-count').textContent = `วันนี้ ${myRecords.filter(r=>r.dateStr===todayStr).length} ร้าน`;
+  } catch(e){ console.warn('fbLoadMyRecords:', e); }
+}
+
+function fbListenAll(){
+  if(_managerUnsubscribe) _managerUnsubscribe();
+  const q = window._fbQuery(window._fbCol('store_visits'), window._fbOrderBy('ts','desc'));
+  _managerUnsubscribe = window._fbSnap(q, snap => {
+    allRecords = snap.docs.map(_parseFirestoreRec);
+    mFiltered  = [...allRecords];
+    mPopulateFilters();
+    mApply();
+  });
+}
+
+/* ── User session ── */
+let currentUser = null;
+let selectedRole = 'sales';
+
+/* ── Sales state ── */
+let camStream = null;
+let locText = '';
+
+/* ── Manager state ── */
+let mFiltered = [];
+let mPage = 1;
+const M_PAGE = 12;
+const PROV_COLORS = ['#0057A8','#16A34A','#EA580C','#DC2626','#D97706','#7C3AED'];
+
+/* ══ LOGIN ══ */
+function selectRole(r){
+  selectedRole = r;
+  document.getElementById('rc-sales').classList.toggle('selected', r==='sales');
+  document.getElementById('rc-manager').classList.toggle('selected', r==='manager');
+  populateNames();
+}
+function populateNames(){
+  const isMgr = selectedRole==='manager';
+  const sel = document.getElementById('name-select');
+  const passEl = document.getElementById('manager-pass');
+  const label = document.getElementById('login-field-label');
+
+  if(isMgr){
+    sel.style.display = 'none';
+    passEl.style.display = 'block';
+    passEl.value = '';
+    label.textContent = 'รหัสผ่านผู้จัดการ';
+  } else {
+    sel.style.display = 'block';
+    passEl.style.display = 'none';
+    passEl.value = '';
+    label.textContent = 'ชื่อผู้ใช้งาน';
+    sel.innerHTML = '<option value="">-- เลือกชื่อ --</option>';
+    SELLERS.forEach(u=>{const o=document.createElement('option');o.value=u.id;o.textContent=u.name;sel.appendChild(o);});
+  }
+  checkLoginBtn();
+}
+document.getElementById('name-select').addEventListener('change', checkLoginBtn);
+function checkLoginBtn(){
+  const isMgr = selectedRole==='manager';
+  if(isMgr){
+    document.getElementById('login-btn').disabled = document.getElementById('manager-pass').value.trim()==='';
+  } else {
+    document.getElementById('login-btn').disabled = !document.getElementById('name-select').value;
+  }
+}
+function doLogin(){
+  const isMgr = selectedRole==='manager';
+  if(isMgr){
+    const pass = document.getElementById('manager-pass').value.trim();
+    if(pass !== '12345'){
+      document.getElementById('manager-pass').style.borderColor='var(--red)';
+      document.getElementById('manager-pass').placeholder='รหัสผ่านไม่ถูกต้อง ❌';
+      setTimeout(()=>{
+        document.getElementById('manager-pass').style.borderColor='';
+        document.getElementById('manager-pass').placeholder='รหัสผ่าน';
+      },1800);
+      return;
+    }
+    currentUser = MANAGERS[0]; // default manager
+  } else {
+    const uid = document.getElementById('name-select').value;
+    currentUser = [...SELLERS,...MANAGERS].find(u=>u.id===uid);
+    if(!currentUser) return;
+  }
+  showScreen(currentUser.role==='manager'?'screen-manager':'screen-sales');
+  if(currentUser.role==='sales') initSales();
+  else initManager();
+}
+function logout(){
+  if(_managerUnsubscribe){ _managerUnsubscribe(); _managerUnsubscribe=null; }
+  currentUser=null; photos=[]; myRecords=[]; allRecords=[];
+  document.getElementById('name-select').value='';
+  document.getElementById('manager-pass').value='';
+  checkLoginBtn();
+  showScreen('screen-login');
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ══ SALES ══ */
+function initSales(){
+  document.getElementById('s-user-name').textContent = currentUser.name;
+  document.getElementById('s-user-zone').textContent = currentUser.zone;
+  updateSClock(); setInterval(updateSClock,1000);
+  getLoc(); renderChecklist(); initBranchDropdowns();
+  myRecords = []; renderHistory();
+  if(window._fbCol) fbLoadMyRecords();
+  else window.addEventListener('fb-ready', fbLoadMyRecords, {once:true});
+}
+function updateSClock(){
+  const n=new Date();
+  document.getElementById('s-clock').textContent=`${fmtD(n)} ${p(n.getHours())}:${p(n.getMinutes())}`;
+}
+function sTab(tab){
+  document.querySelectorAll('.s-tab').forEach((t,i)=>t.classList.toggle('active',(tab==='record'&&i===0)||(tab==='history'&&i===1)));
+  document.getElementById('sp-record').classList.toggle('active',tab==='record');
+  document.getElementById('sp-history').classList.toggle('active',tab==='history');
+  if(tab==='history') renderHistory();
+}
+/* ── Checklist dynamic render ── */
+function renderChecklist(){
+  const container=document.getElementById('checklist');
+  if(!container) return;
+  let num=0;
+  container.innerHTML=CHECKLIST_SECTIONS.map(sec=>{
+    const itemsHTML=sec.items.map(item=>{
+      if(item.type==='pf'){
+        num++;
+        return `<div class="cl-item">
+          <div class="cl-item-label">${num}. ${item.label}</div>
+          <div class="cl-btns">
+            <button class="cl-btn" onclick="clSelect('${item.id}','pass',this)">✅ ผ่าน</button>
+            <button class="cl-btn" onclick="clSelect('${item.id}','fail',this)">❌ ไม่ผ่าน</button>
+          </div>
+        </div>`;
+      }
+      if(item.type==='kn'){
+        num++;
+        return `<div class="cl-item">
+          <div class="cl-item-label">${num}. ${item.label}</div>
+          <div class="cl-btns">
+            <button class="cl-btn" onclick="clSelect('${item.id}','know',this)">✅ ทราบ</button>
+            <button class="cl-btn" onclick="clSelect('${item.id}','notknow',this)">❌ ไม่ทราบ</button>
+          </div>
+        </div>`;
+      }
+      if(item.type==='yn'){
+        num++;
+        return `<div class="cl-item">
+          <div class="cl-item-label">${num}. ${item.label}</div>
+          <div class="cl-btns">
+            <button class="cl-btn" onclick="clSelect('${item.id}','yes',this)">✅ มี</button>
+            <button class="cl-btn" onclick="clSelect('${item.id}','no',this)">❌ ไม่มี</button>
+          </div>
+        </div>`;
+      }
+      if(item.type==='level'){
+        num++;
+        return `<div class="cl-item">
+          <div class="cl-item-label">${num}. ${item.label}</div>
+          <div class="cl-level-btns" id="lvl-${item.id}">
+            ${[1,2,3,4,5].map(l=>`<button class="cl-level-btn" onclick="clLevel('${item.id}',${l},this)">
+              <div style="font-size:16px;">${['😟','😕','🙂','😊','🌟'][l-1]}</div>
+              <div>Lv${l}</div>
+            </button>`).join('')}
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">Lv1=ต้องปรับปรุงด่วน &nbsp;·&nbsp; Lv3=มาตรฐาน &nbsp;·&nbsp; Lv5=ดีมาก</div>
+        </div>`;
+      }
+      if(item.type==='meet'){
+        num++;
+        return `<div class="cl-item">
+          <div class="cl-item-label">${num}. ${item.label}</div>
+          <div class="cl-btns">
+            <button class="cl-btn" onclick="clMeet('${item.id}','meet',this)">✅ พบ</button>
+            <button class="cl-btn" onclick="clMeet('${item.id}','notmeet',this)">❌ ไม่พบ</button>
+          </div>
+          <input class="meet-name" id="mn-${item.id}" placeholder="ชื่อ-นามสกุล">
+        </div>`;
+      }
+      if(item.type==='text'){
+        return `<div class="cl-item">
+          <div class="cl-item-label" style="color:var(--muted);">📝 ${item.label}</div>
+          <textarea class="cl-text" id="ct-${item.id}" rows="2" placeholder="โปรดระบุ (ถ้ามี)"></textarea>
+        </div>`;
+      }
+      return '';
+    }).join('');
+    return `<div class="cl-section">
+      <div class="cl-section-head">${sec.icon} ${sec.id.replace('s','').padStart(2,'0')}. ${sec.title}</div>
+      ${itemsHTML}
+    </div>`;
+  }).join('');
+  // update total count (non-text, non-note items)
+  document.getElementById('check-total').textContent=num;
+  updateCheckCount();
+}
+
+const clValues={};
+
+function clSelect(id, val, btn){
+  clValues[id]=val;
+  const btns=btn.parentElement.querySelectorAll('.cl-btn');
+  btns.forEach(b=>{b.className='cl-btn';});
+  btn.classList.add('sel-'+val);
+  updateCheckCount();
+}
+
+function clLevel(id, val, btn){
+  clValues[id]=val;
+  document.querySelectorAll(`#lvl-${id} .cl-level-btn`).forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  updateCheckCount();
+}
+
+function clMeet(id, val, btn){
+  clValues[id]=val;
+  const btns=btn.parentElement.querySelectorAll('.cl-btn');
+  btns.forEach(b=>{b.className='cl-btn';});
+  btn.classList.add('sel-'+val);
+  const nameInput=document.getElementById('mn-'+id);
+  if(nameInput) nameInput.style.display=val==='meet'?'block':'none';
+  updateCheckCount();
+}
+
+function toggleCheck(el){el.classList.toggle('checked');updateCheckCount();}
+
+function updateCheckCount(){
+  const total=parseInt(document.getElementById('check-total')?.textContent||0);
+  const answered=Object.keys(clValues).length;
+  const done=Math.min(answered,total);
+  if(document.getElementById('check-done')) document.getElementById('check-done').textContent=done;
+  const pct=total?done/total*100:0;
+  const prog=document.getElementById('check-progress');
+  if(prog){
+    prog.style.width=pct+'%';
+    prog.style.background=pct>=100?'linear-gradient(90deg,var(--green),#22C55E)':'linear-gradient(90deg,var(--blue),var(--blue2))';
+  }
+}
+
+function resetChecklist(){
+  Object.keys(clValues).forEach(k=>delete clValues[k]);
+  renderChecklist();
+}
+
+function getCheckedItems(){
+  return Object.entries(clValues).map(([id,val])=>({id,val}));
+}
+
+function collectChecklist(){
+  const result={values:{...clValues},notes:{}};
+  CHECKLIST_SECTIONS.forEach(sec=>{
+    sec.items.forEach(item=>{
+      if(item.type==='text'){
+        const el=document.getElementById('ct-'+item.id);
+        if(el&&el.value.trim()) result.notes[item.id]={label:item.label,val:el.value.trim()};
+      }
+      if(item.type==='meet'){
+        const el=document.getElementById('mn-'+item.id);
+        if(el&&el.value.trim()) result.notes[item.id+'-name']={label:item.label,val:el.value.trim()};
+      }
+    });
+  });
+  return result;
+}
+
+/* ── Photo (category-based) ── */
+let currentCat = 1;
+let photosByCat = {1:[],2:[],3:[],4:[],5:[],6:[]};
+const CAT_LABELS = {
+  1:'🏪 ภาพถ่ายร้านค้า', 2:'🎨 เชลล์โชว์สินค้า',
+  3:'📦 กองโปร', 4:'🖼️ สื่อและจุดขาย',
+  5:'👤 พนักงาน PC', 6:'🏬 มุมกว้างแผนก'
+};
+function getAllPhotos(){return Object.values(photosByCat).flat();}
+
+function openCamCat(cat){currentCat=cat; openCam();}
+function openFileCat(cat){currentCat=cat; document.getElementById('file-in').click();}
+
+async function openCam(){
+  try{
+    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    const v=document.getElementById('cam-v'); v.srcObject=camStream; v.style.display='block';
+    const ctrl=document.getElementById('cam-ctrl'); ctrl.style.display='flex';
+    document.getElementById('cam-cat-label').textContent='กำลังถ่าย: '+CAT_LABELS[currentCat];
+  } catch(e){useMockPhoto();}
+}
+function closeCam(){
+  stopStream();
+  document.getElementById('cam-v').style.display='none';
+  document.getElementById('cam-ctrl').style.display='none';
+}
+function snapPhoto(){
+  const v=document.getElementById('cam-v'), c=document.getElementById('snap-c');
+  c.width=v.videoWidth||640; c.height=v.videoHeight||480;
+  const ctx=c.getContext('2d'); ctx.drawImage(v,0,0);
+  stampTS(ctx,c.width,c.height,currentCat);
+  addPhotoCat(currentCat, c.toDataURL('image/jpeg',.82)); closeCam();
+}
+function useMockPhoto(){
+  const c=document.getElementById('snap-c'); c.width=640; c.height=480;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#1E3A5F'; ctx.fillRect(0,0,640,480);
+  ctx.fillStyle='#2E5485'; ctx.fillRect(0,360,640,120);
+  for(let i=0;i<4;i++){ctx.fillStyle=`rgba(255,255,255,${0.04+i*.01})`;ctx.fillRect(40,60+i*70,560,50);}
+  const cols=['#E63946','#0057A8','#2DC653','#FF9F1C','#A8DADC'];
+  for(let i=0;i<5;i++){ctx.fillStyle=cols[i];ctx.beginPath();ctx.ellipse(80+i*110,90,26,32,0,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle='rgba(255,255,255,0.75)';ctx.font='bold 14px Sarabun,sans-serif';ctx.textAlign='center';
+  ctx.fillText(CAT_LABELS[currentCat]+' (Mock)',320,330);
+  stampTS(ctx,640,480,currentCat); addPhotoCat(currentCat, c.toDataURL('image/jpeg',.82));
+}
+function stampTS(ctx,w,h,cat){
+  const n=new Date();
+  const lbl=`${p(n.getDate())}/${p(n.getMonth()+1)}/${n.getFullYear()} ${p(n.getHours())}:${p(n.getMinutes())}`;
+  const catLabel=cat?CAT_LABELS[cat]||'':'';
+  ctx.font=`bold ${Math.round(w*.022)}px IBM Plex Mono,monospace`;
+  const tw=ctx.measureText(lbl).width;
+  ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(6,h-30,tw+14,24);
+  ctx.fillStyle='#FFD700'; ctx.textAlign='left'; ctx.fillText(lbl,13,h-12);
+  if(catLabel){
+    ctx.font=`bold ${Math.round(w*.020)}px Sarabun,sans-serif`;
+    const cw=ctx.measureText(catLabel).width;
+    ctx.fillStyle='rgba(0,87,168,0.75)'; ctx.fillRect(6,6,cw+14,22);
+    ctx.fillStyle='white'; ctx.fillText(catLabel,13,22);
+  }
+}
+function loadFiles(input){
+  Array.from(input.files).forEach(f=>{
+    const r=new FileReader(); r.onload=e=>{
+      const img=new Image(); img.onload=()=>{
+        const c=document.getElementById('snap-c'); c.width=img.width; c.height=img.height;
+        const ctx=c.getContext('2d'); ctx.drawImage(img,0,0);
+        stampTS(ctx,c.width,c.height,currentCat);
+        addPhotoCat(currentCat, c.toDataURL('image/jpeg',.82));
+      }; img.src=e.target.result;
+    }; r.readAsDataURL(f);
+  }); input.value='';
+}
+function addPhotoCat(cat, url){
+  if(!photosByCat[cat]) photosByCat[cat]=[];
+  photosByCat[cat].push(url);
+  renderCatGrid(cat); updatePhotoTotal();
+}
+function removePhotoCat(cat, idx){
+  photosByCat[cat].splice(idx,1);
+  renderCatGrid(cat); updatePhotoTotal();
+}
+function renderCatGrid(cat){
+  const grid=document.getElementById('pg-'+cat);
+  if(!grid) return;
+  const cnt=document.getElementById('cnt-'+cat);
+  const arr=photosByCat[cat]||[];
+  grid.innerHTML=arr.map((u,i)=>`
+    <div class="photo-thumb-sm">
+      <img src="${u}" onclick="lbOpenCat(${cat},${i})">
+      <button class="photo-del" onclick="removePhotoCat(${cat},${i})">✕</button>
+    </div>`).join('');
+  cnt.textContent=arr.length+' รูป';
+  cnt.className='photo-cat-count'+(arr.length>0?' has-photos':'');
+}
+function updatePhotoTotal(){
+  const total=getAllPhotos().length;
+  const el=document.getElementById('photo-total-count');
+  if(el) el.textContent=total+' รูป';
+}
+function lbOpenCat(cat, idx){
+  const arr=(photosByCat[cat]||[]).map(src=>({src,store:CAT_LABELS[cat]}));
+  lbOpen(arr, idx, CAT_LABELS[cat]);
+}
+function stopStream(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}}
+
+/* Location */
+function getLoc(){
+  document.getElementById('loc-text').textContent='กำลังระบุ...';
+  if(!navigator.geolocation){setMockLoc();return;}
+  navigator.geolocation.getCurrentPosition(
+    pos=>{locText=`${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+      document.getElementById('loc-text').textContent='📌 '+locText;},
+    ()=>setMockLoc(),{timeout:7000}
+  );
+}
+function setMockLoc(){locText='13.99823, 100.69214';document.getElementById('loc-text').textContent='📌 '+locText+' (Mock)';}
+
+/* Confirm & Save */
+function openConfirm(){
+  const store=document.getElementById('f-store').value.trim();
+  if(!store){alert('กรุณาระบุชื่อร้านค้า');return;}
+  const now=new Date();
+
+  // Basic info
+  document.getElementById('mc-store').textContent=store;
+  document.getElementById('mc-date').textContent=fmtD(now);
+  document.getElementById('mc-time').textContent=`${p(now.getHours())}:${p(now.getMinutes())} น.`;
+  document.getElementById('mc-loc').textContent=locText||'ไม่พบ GPS';
+
+  // Note
+  const note=document.getElementById('f-note').value.trim();
+  document.getElementById('mc-note-wrap').style.display=note?'block':'none';
+  document.getElementById('mc-note').textContent=note;
+
+  // Photos summary
+  const allPh=getAllPhotos();
+  const mp=document.getElementById('modal-photos');
+  mp.style.display=allPh.length?'flex':'none';
+  mp.innerHTML=allPh.slice(0,6).map(u=>`<img src="${u}" style="width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0;">`).join('')
+    +(allPh.length>6?`<div style="width:56px;height:56px;border-radius:8px;background:var(--blue3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--blue);">+${allPh.length-6}</div>`:'');
+
+  // Checklist summary per section
+  const valMap={
+    pass:'✅ ผ่าน', fail:'❌ ไม่ผ่าน',
+    know:'✅ ทราบ', notknow:'❌ ไม่ทราบ',
+    yes:'✅ มี', no:'❌ ไม่มี',
+    meet:'✅ พบ', notmeet:'❌ ไม่พบ',
+  };
+  let totalQ=0, totalPassed=0, totalAns=0;
+  const isPassV=v=>v==='pass'||v==='know'||v==='yes'||v==='meet'||(typeof v==='number'&&v>=3);
+  const rows=CHECKLIST_SECTIONS.map(sec=>{
+    const qItems=sec.items.filter(i=>i.type!=='text');
+    const answered=qItems.filter(i=>clValues[i.id]!==undefined).length;
+    const passed=qItems.filter(i=>clValues[i.id]!==undefined&&isPassV(clValues[i.id])).length;
+    totalQ+=qItems.length; totalAns+=answered; totalPassed+=passed;
+    const allOk=qItems.every(i=>{
+      const v=clValues[i.id];
+      return v==='pass'||v==='know'||v==='yes'||v==='meet'||(typeof v==='number'&&v>=3);
+    });
+    const statusIcon=answered===0?'⬜':allOk?'✅':'⚠️';
+    const detailRows=qItems.map(item=>{
+      const v=clValues[item.id];
+      let display='–';
+      if(v!==undefined){
+        if(typeof v==='number') display=`⭐ Level ${v}`;
+        else display=valMap[v]||v;
+      }
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(0,0,0,0.06);font-size:11px;">
+        <span style="color:var(--muted);flex:1;">${item.label}</span>
+        <span style="font-weight:600;white-space:nowrap;margin-left:8px;">${display}</span>
+      </div>`;
+    }).join('');
+    return `<details style="margin-bottom:6px;border-radius:8px;border:1px solid var(--border);overflow:hidden;">
+      <summary style="padding:8px 12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:var(--bg);list-style:none;font-size:12px;font-weight:600;">
+        <span>${sec.icon} ${sec.title}</span>
+        <span>${statusIcon} <span style="color:var(--muted);font-weight:400;">${answered}/${qItems.length}</span></span>
+      </summary>
+      <div style="padding:6px 12px 10px;">${detailRows}</div>
+    </details>`;
+  }).join('');
+
+  const pct=totalQ?Math.round(totalPassed/totalQ*100):0;
+  const answerPct=totalQ?Math.round(totalAns/totalQ*100):0;
+  const scoreCol=pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)';
+  document.getElementById('mc-checklist-summary').innerHTML=
+    `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div style="background:var(--blue3);border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-size:10px;color:var(--blue);font-weight:700;margin-bottom:3px;">ตอบครบ</div>
+        <div style="font-size:22px;font-weight:800;color:var(--blue);font-family:'IBM Plex Mono',monospace;">${answerPct}%</div>
+        <div style="font-size:10px;color:var(--muted);">${totalAns}/${totalQ} ข้อ</div>
+        <div style="background:var(--border);border-radius:3px;height:5px;margin-top:5px;overflow:hidden;"><div style="height:100%;width:${answerPct}%;background:var(--blue);border-radius:3px;"></div></div>
+      </div>
+      <div style="background:${pct>=80?'#DCFCE7':pct>=50?'#FEF3C7':'#FEE2E2'};border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-size:10px;color:${scoreCol};font-weight:700;margin-bottom:3px;">ผ่าน</div>
+        <div style="font-size:22px;font-weight:800;color:${scoreCol};font-family:'IBM Plex Mono',monospace;">${pct}%</div>
+        <div style="font-size:10px;color:var(--muted);">${totalPassed}/${totalQ} ข้อ</div>
+        <div style="background:var(--border);border-radius:3px;height:5px;margin-top:5px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${scoreCol};border-radius:3px;"></div></div>
+      </div>
+    </div>${rows}`;
+
+  document.getElementById('s-modal').classList.add('show');
+}
+function closeModal(){document.getElementById('s-modal').classList.remove('show');}
+/* ── Photo compression ── */
+function compressPhoto(dataUrl, maxW=640, quality=0.55){
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const ratio = Math.min(1, maxW / img.width);
+      const w = Math.round(img.width * ratio);
+      const h = Math.round(img.height * ratio);
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(dataUrl); // fallback
+    img.src = dataUrl;
+  });
+}
+
+async function saveVisit(){
+  const now=new Date();
+  const store=document.getElementById('f-store').value.trim();
+  if(!store){ alert('กรุณาเลือกสาขาก่อนบันทึก'); return; }
+  const allPh=getAllPhotos();
+  const checklist=collectChecklist();
+
+  // Show saving state
+  const btnSave=document.querySelector('.btn-green.btn-full');
+  const origLabel=btnSave?.innerHTML;
+  if(btnSave){ btnSave.disabled=true; btnSave.innerHTML='⏳ กำลังบันทึก...'; }
+
+  try {
+    // 1. บีบอัดรูปให้เล็กก่อนเก็บ Firestore
+    const visitId = Date.now().toString();
+    const photoB64 = [];
+    for(let i = 0; i < allPh.length; i++){
+      const compressed = await compressPhoto(allPh[i]);
+      photoB64.push(compressed);
+    }
+
+    // 2. Save visit to Firestore (พร้อมรูป base64)
+    const recData = {
+      id: visitId,
+      ts: window._fbServerTs(),
+      dateStr: fmtD(now),
+      timeStr: `${p(now.getHours())}:${p(now.getMinutes())}`,
+      seller: { id:currentUser.id, name:currentUser.name, zone:currentUser.zone, initials:currentUser.initials, role:currentUser.role },
+      store,
+      storeType: document.getElementById('f-type').value,
+      chain: document.getElementById('f-chain').value,
+      province: document.getElementById('f-province').value,
+      purposes: getCheckedItems(),
+      checklist,
+      numPhotos: allPh.length,
+      photos: photoB64,
+      note: document.getElementById('f-note').value.trim(),
+      source: 'real'
+    };
+    const docRef = await window._fbAddDoc(window._fbCol('store_visits'), recData);
+
+    // 3. Update local state
+    const localRec = {
+      _docId: docRef.id, id: visitId, date: now,
+      dateStr: recData.dateStr, timeStr: recData.timeStr,
+      seller: currentUser, store, storeType: recData.storeType,
+      chain: recData.chain, province: recData.province,
+      purposes: recData.purposes, checklist, numPhotos: allPh.length,
+      photos: photoB64, note: recData.note, emoji:'🏪', source:'real'
+    };
+    myRecords.unshift(localRec);
+    allRecords.unshift(localRec);
+
+    closeModal();
+    const fl=document.getElementById('flash');
+    document.getElementById('flash-info').textContent=`${store} · ${recData.dateStr} ${recData.timeStr} น.`;
+    fl.classList.add('show'); setTimeout(()=>fl.classList.remove('show'),2200);
+
+    // Reset form
+    document.getElementById('f-chain').value='';
+    document.getElementById('f-province').value='';
+    document.getElementById('f-branch').value='';
+    document.getElementById('f-store').value='';
+    document.getElementById('f-type').value='';
+    document.getElementById('branch-info').style.display='none';
+    filterBranch();
+    document.getElementById('f-note').value='';
+    resetChecklist(); renderChecklist();
+    photosByCat={1:[],2:[],3:[],4:[],5:[],6:[]};
+    for(let c=1;c<=6;c++) renderCatGrid(c);
+    updatePhotoTotal();
+
+    const todayStr=fmtD(new Date());
+    document.getElementById('s-today-count').textContent=`วันนี้ ${myRecords.filter(r=>r.dateStr===todayStr).length} ร้าน`;
+    renderHistory();
+    document.querySelector('.s-page.active .s-content')?.scrollTo({top:0,behavior:'smooth'});
+
+  } catch(e){
+    alert('❌ บันทึกไม่สำเร็จ: ' + e.message);
+    console.error(e);
+  } finally {
+    if(btnSave){ btnSave.disabled=false; btnSave.innerHTML=origLabel; }
+  }
+}
+
+/* History */
+function renderHistory(){
+  const todayStr=fmtD(new Date());
+  const myAll=[...myRecords];
+  document.getElementById('sh-visits').textContent=myAll.length;
+  document.getElementById('sh-photos').textContent=myAll.reduce((a,r)=>a+r.numPhotos,0);
+  document.getElementById('sh-today').textContent=myAll.filter(r=>r.dateStr===todayStr).length;
+  const list=document.getElementById('hist-list');
+  if(!myAll.length){list.innerHTML='<div class="empty-state"><div class="ei">🏪</div>ยังไม่มีข้อมูล</div>';return;}
+
+  const isPass=v=>v==='pass'||v==='know'||v==='yes'||v==='meet'||(typeof v==='number'&&v>=3);
+  const valMap={pass:'✅',fail:'❌',know:'✅',notknow:'❌',yes:'✅',no:'❌',meet:'✅',notmeet:'❌'};
+  const allQItems=CHECKLIST_SECTIONS.flatMap(s=>s.items.filter(i=>i.type!=='text'));
+
+  list.innerHTML=myAll.map(r=>{
+    const clVals=r.checklist&&r.checklist.values?r.checklist.values:{};
+    const answered=allQItems.filter(i=>clVals[i.id]!==undefined).length;
+    const passed=allQItems.filter(i=>clVals[i.id]!==undefined&&isPass(clVals[i.id])).length;
+    const pct=allQItems.length?Math.round(passed/allQItems.length*100):0;
+    const col=pct>=80?'var(--green)':pct>=60?'var(--orange)':'var(--red)';
+    const bgCol=pct>=80?'#DCFCE7':pct>=60?'#FEF3C7':'#FEE2E2';
+
+    // group checklist by section
+    const clHTML=CHECKLIST_SECTIONS.map(sec=>{
+      const qItems=sec.items.filter(i=>i.type!=='text');
+      if(!qItems.length) return '';
+      return `<div style="margin-bottom:8px;">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:4px;">${sec.icon} ${sec.title}</div>
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          ${qItems.map(item=>{
+            const v=clVals[item.id];
+            const icon=v===undefined?'⬜':typeof v==='number'?`⭐ Level ${v}`:(valMap[v]||'–');
+            const pass=v!==undefined&&isPass(v);
+            return `<div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:12px;flex-shrink:0;">${icon}</span>
+              <span style="font-size:11px;color:${pass?'var(--text)':'var(--muted)'};${v!==undefined&&!pass?'text-decoration:line-through':''}">${item.label}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div style="background:white;border-radius:14px;box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;">
+      <!-- หัวการ์ด -->
+      <div style="padding:12px 14px 10px;display:flex;gap:10px;align-items:flex-start;">
+        <div class="vi-photo" style="flex-shrink:0;">
+          ${r.photos.length?`<img src="${r.photos[0]}" onclick="lbOpenRecord(${r.id},0)" style="cursor:pointer;">`:`${r.emoji}`}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div class="vi-store">${r.store}</div>
+          <div class="vi-meta">📅 ${r.dateStr} · ${r.timeStr} น.</div>
+          ${r.note?`<div class="vi-note" style="margin-top:3px;">📝 ${r.note}</div>`:''}
+        </div>
+        <!-- score badge -->
+        <div style="flex-shrink:0;background:${bgCol};border-radius:10px;padding:8px 10px;text-align:center;min-width:82px;">
+          <div style="font-size:9px;color:var(--blue);font-weight:700;letter-spacing:.3px;">ตอบครบ</div>
+          <div style="font-size:14px;font-weight:800;color:var(--blue);font-family:'IBM Plex Mono',monospace;">${allQItems.length?Math.round(answered/allQItems.length*100):0}%</div>
+          <div style="font-size:9px;color:var(--muted);margin-bottom:4px;">${answered}/${allQItems.length} ข้อ</div>
+          <div style="height:1px;background:rgba(0,0,0,0.08);margin-bottom:4px;"></div>
+          <div style="font-size:9px;color:${col};font-weight:700;letter-spacing:.3px;">ผ่าน</div>
+          <div style="font-size:14px;font-weight:800;color:${col};font-family:'IBM Plex Mono',monospace;">${pct}%</div>
+          <div style="font-size:9px;color:var(--muted);">${passed}/${allQItems.length} ข้อ</div>
+        </div>
+      </div>
+
+      <!-- progress bar -->
+      <div style="margin:0 14px 8px;">
+        <div style="background:var(--border);border-radius:4px;height:5px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${col};border-radius:4px;"></div>
+        </div>
+      </div>
+
+      <!-- photos strip + delete -->
+      ${r.photos.length?`
+      <div style="padding:0 14px 10px;">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:600;">📷 รูปภาพ ${r.photos.length} รูป</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+          ${r.photos.map((ph,pi)=>`
+            <div style="position:relative;width:52px;height:52px;border-radius:8px;overflow:hidden;">
+              <img src="${ph}" style="width:100%;height:100%;object-fit:cover;cursor:pointer;" onclick="lbOpenRecord(${r.id},${pi})">
+              <button onclick="deletePhoto('${r.id}',${pi})" style="position:absolute;top:2px;right:2px;width:16px;height:16px;background:rgba(220,38,38,0.85);border:none;border-radius:50%;color:white;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+            </div>`).join('')}
+        </div>
+      </div>`:''}
+
+      <!-- checklist detail + delete record -->
+      <details style="border-top:1px solid var(--border);">
+        <summary style="padding:9px 14px;font-size:12px;font-weight:600;color:var(--blue);cursor:pointer;list-style:none;display:flex;align-items:center;gap:5px;">
+          <span>▸</span> ดูรายละเอียดเช็คลิสต์
+        </summary>
+        <div style="padding:10px 14px 14px;">
+          ${clHTML}
+        </div>
+      </details>
+
+      <!-- delete record -->
+      <div style="border-top:1px solid var(--border);padding:8px 14px;">
+        <button onclick="deleteRecord('${r.id}')" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-weight:600;display:flex;align-items:center;gap:4px;">
+          🗑️ ลบรายการนี้
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteRecord(id){
+  if(!confirm('ลบรายการนี้ออกจากประวัติ?')) return;
+  const rec = myRecords.find(r=>r.id===id||r._docId===id);
+  myRecords = myRecords.filter(r=>r.id!==id&&r._docId!==id);
+  allRecords = allRecords.filter(r=>r.id!==id&&r._docId!==id);
+  if(rec?._docId && window._fbDelDoc){
+    window._fbDelDoc('store_visits', rec._docId).catch(e=>console.warn('delete:', e));
+  }
+  renderHistory();
+  const todayStr=fmtD(new Date());
+  document.getElementById('s-today-count').textContent=`วันนี้ ${myRecords.filter(r=>r.dateStr===todayStr).length} ร้าน`;
+}
+
+function deletePhoto(rid, photoIdx){
+  const id = typeof rid==='string' ? Number(rid) : rid;
+  if(!confirm('ลบรูปภาพนี้?')) return;
+  const rec = [...myRecords,...allRecords].find(r=>r.id===id);
+  if(!rec) return;
+  rec.photos.splice(photoIdx, 1);
+  rec.numPhotos = rec.photos.length;
+  // sync in allRecords too
+  const ar = allRecords.find(r=>r.id===id);
+  if(ar){ ar.photos=rec.photos; ar.numPhotos=rec.numPhotos; }
+  renderHistory();
+}
+
+function clearAllData(){
+  if(!confirm('⚠️ ยืนยันล้างข้อมูลที่แสดงบนหน้าจอ?\n\n(ข้อมูลใน Firebase จะยังคงอยู่ กดรีเฟรชเพื่อโหลดใหม่)')) return;
+  allRecords = [];
+  myRecords = [];
+  mFiltered = [];
+  mApply();
+}
+
+/* ══ MANAGER ══ */
+function initManager(){
+  document.getElementById('m-user-name').textContent=currentUser.name;
+  document.getElementById('m-user-role').textContent=currentUser.zone;
+  updateMClock(); setInterval(updateMClock,1000);
+  mPopulateFilters();
+  allRecords=[]; mFiltered=[]; mApply();
+  if(window._fbCol) fbListenAll();
+  else window.addEventListener('fb-ready', fbListenAll, {once:true});
+}
+function updateMClock(){
+  const n=new Date();
+  document.getElementById('m-clock').textContent=`${fmtD(n)} ${p(n.getHours())}:${p(n.getMinutes())}`;
+}
+function mPopulateFilters(){
+  const sel=document.getElementById('mf-seller');
+  sel.innerHTML='<option value="">👤 เซลล์ทั้งหมด</option>';
+  SELLERS.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o);});
+  const provSet=[...new Set(allRecords.map(r=>r.province).filter(Boolean))].sort();
+  const prov=document.getElementById('mf-province');
+  prov.innerHTML='<option value="">🗺️ จังหวัดทั้งหมด</option>';
+  (provSet.length?provSet:PROVINCES).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;prov.appendChild(o);});
+  const stores=[...new Set(allRecords.map(r=>r.store))].sort();
+  const fst=document.getElementById('mf-store');
+  fst.innerHTML='<option value="">🏪 ร้านทั้งหมด</option>';
+  stores.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;fst.appendChild(o);});
+}
+function mApply(){
+  const seller=document.getElementById('mf-seller').value;
+  const prov=document.getElementById('mf-province').value;
+  const store=document.getElementById('mf-store').value;
+  const period=document.getElementById('mf-period').value;
+  mFiltered=allRecords.filter(r=>{
+    if(seller&&r.seller.id!==seller) return false;
+    if(prov&&r.province!==prov) return false;
+    if(store&&r.store!==store) return false;
+    const d=new Date(NOW);
+    if(period==='today'){d.setHours(0,0,0,0);return r.date>=d;}
+    if(period==='week'){d.setDate(d.getDate()-7);return r.date>=d;}
+    if(period==='month'){d.setDate(d.getDate()-30);return r.date>=d;}
+    return true;
+  });
+  mPage=1; mRender();
+}
+function mClear(){
+  ['mf-seller','mf-province','mf-store'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mf-period').value='month'; mApply();
+}
+function mRender(){
+  mRenderKPI(); mRenderChartSeller(); mRenderChartProv(); mRenderTable();
+  document.getElementById('m-rcount').textContent=mFiltered.length;
+}
+
+function mRenderChecklistSummary(){
+  // helper: get pass/fail value from new checklist structure
+  const isPass = (v) => v==='pass'||v==='know'||v==='yes'||v==='meet'||(typeof v==='number'&&v>=3);
+
+  const recs = mFiltered.filter(r=>r.checklist && r.checklist.values);
+  if(!recs.length){
+    document.getElementById('checklist-summary').innerHTML='<div class="empty-state" style="padding:20px;"><div class="ei">📋</div>ไม่มีข้อมูล</div>';
+    return;
+  }
+  const total=recs.length;
+
+  // build per-section stats
+  const sectionStats = CHECKLIST_SECTIONS.map(sec=>{
+    const qItems = sec.items.filter(i=>i.type!=='text');
+    let sectionPass=0, sectionTotal=0;
+    qItems.forEach(item=>{
+      recs.forEach(r=>{
+        const v = r.checklist.values[item.id];
+        if(v!==undefined){ sectionTotal++; if(isPass(v)) sectionPass++; }
+      });
+    });
+    const rate = sectionTotal ? Math.round(sectionPass/sectionTotal*100) : 0;
+    return {sec, rate, qItems};
+  }).filter(s=>s.qItems.length>0);
+
+  // section score cards
+  let html = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px;">`;
+  sectionStats.forEach(({sec, rate})=>{
+    const col=rate>=80?'var(--green)':rate>=60?'var(--orange)':'var(--red)';
+    const bg=rate>=80?'#DCFCE7':rate>=60?'#FEF3C7':'#FEE2E2';
+    html+=`<div style="background:${bg};border-radius:10px;padding:12px;text-align:center;">
+      <div style="font-size:18px;margin-bottom:4px;">${sec.icon}</div>
+      <div style="font-size:20px;font-weight:800;color:${col};font-family:'IBM Plex Mono',monospace;">${rate}%</div>
+      <div style="font-size:10px;color:${col};font-weight:600;margin-top:3px;">${sec.title}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // per-item bar chart
+  html += '<div style="display:flex;flex-direction:column;gap:5px;">';
+  let num=0;
+  sectionStats.forEach(({sec, qItems})=>{
+    html+=`<div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.5px;padding:8px 0 3px;border-top:1px solid var(--border);">${sec.icon} ${sec.title}</div>`;
+    qItems.forEach(item=>{
+      num++;
+      let passed=0, answered=0;
+      recs.forEach(r=>{
+        const v=r.checklist.values[item.id];
+        if(v!==undefined){ answered++; if(isPass(v)) passed++; }
+      });
+      const tot2=CHECKLIST_SECTIONS.flatMap(s=>s.items.filter(i=>i.type!=='text')).length;
+      const rate = tot2 ? Math.round(passed/tot2*100) : 0;
+      const col=rate>=80?'var(--green)':rate>=60?'var(--orange)':'var(--red)';
+      html+=`<div style="display:flex;align-items:center;gap:8px;">
+        <div style="font-size:10px;width:18px;color:var(--muted);flex-shrink:0;font-weight:700;">${num}</div>
+        <div style="font-size:11px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${item.label}">${item.label}</div>
+        <div style="width:100px;background:var(--border);border-radius:3px;height:16px;overflow:hidden;flex-shrink:0;">
+          <div style="height:100%;width:${rate}%;background:${col};border-radius:3px;display:flex;align-items:center;justify-content:flex-end;padding-right:3px;">
+            <span style="font-size:9px;font-weight:700;color:white;white-space:nowrap;">${rate>10?rate+'%':''}</span>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);width:42px;text-align:right;flex-shrink:0;">${passed}/${answered}</div>
+      </div>`;
+    });
+  });
+  html += '</div>';
+  document.getElementById('checklist-summary').innerHTML = html;
+}
+function mRenderKPI(){
+  const tot=mFiltered.length;
+  const photos=mFiltered.reduce((a,r)=>a+r.numPhotos,0);
+  const stores=new Set(mFiltered.map(r=>r.store)).size;
+  const sellers=new Set(mFiltered.map(r=>r.seller.id)).size;
+  const todayStr=fmtD(NOW);
+  const tc=mFiltered.filter(r=>r.dateStr===todayStr).length;
+  mAnimN('mk-visits',tot); mAnimN('mk-photos',photos); mAnimN('mk-stores',stores); mAnimN('mk-sellers',sellers);
+  document.getElementById('mk-v2').textContent=`▲ +${tc} วันนี้`;
+  document.getElementById('mk-p2').textContent=`เฉลี่ย ${(photos/Math.max(tot,1)).toFixed(1)} รูป/ร้าน`;
+  document.getElementById('mk-s2').textContent=`จาก ${STORE_NAMES.length} เป้าหมาย`;
+  document.getElementById('mk-se2').textContent=`วันนี้ ${new Set(mFiltered.filter(r=>r.dateStr===todayStr).map(r=>r.seller.id)).size} คน`;
+}
+function mAnimN(id,target){
+  const el=document.getElementById(id);
+  const s=performance.now(),dur=500;
+  const go=ts=>{const pr=Math.min((ts-s)/dur,1);el.textContent=Math.round(pr*target);if(pr<1)requestAnimationFrame(go);};
+  requestAnimationFrame(go);
+}
+function mRenderChartSeller(){
+  const counts={};
+  mFiltered.forEach(r=>{counts[r.seller.name]=(counts[r.seller.name]||0)+1;});
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const max=sorted[0]?.[1]||1;
+  document.getElementById('m-chart-seller').innerHTML=sorted.map(([name,cnt])=>`
+    <div class="bar-row">
+      <div class="bar-name" title="${name}">${name.split(' ')[0]}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(cnt/max*100).toFixed(1)}%"><span class="bar-val">${cnt}</span></div></div>
+      <div class="bar-n">${cnt}</div>
+    </div>`).join('')||'<div class="empty-state"><div class="ei">📭</div>ไม่มีข้อมูล</div>';
+}
+function mRenderChartProv(){
+  const counts={},photos={};
+  mFiltered.forEach(r=>{counts[r.province]=(counts[r.province]||0)+1;photos[r.province]=(photos[r.province]||0)+r.numPhotos;});
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('m-chart-prov').innerHTML=sorted.map(([pv,cnt],i)=>`
+    <div class="prov-row">
+      <div class="prov-l"><div class="prov-dot" style="background:${PROV_COLORS[i%6]}"></div><span>${pv}</span></div>
+      <div style="text-align:right"><div class="prov-c">${cnt}</div><div style="font-size:10px;color:var(--muted);">📷 ${photos[pv]||0}</div></div>
+    </div>`).join('')||'<div class="empty-state" style="padding:16px;"><div class="ei">🗺️</div>ไม่มีข้อมูล</div>';
+}
+function mRenderTable(){
+  const start=(mPage-1)*M_PAGE;
+  const page=mFiltered.slice(start,start+M_PAGE);
+  document.getElementById('m-table-sub').textContent=`แสดง ${start+1}–${Math.min(start+M_PAGE,mFiltered.length)} จาก ${mFiltered.length} รายการ`;
+  const isPass=v=>v==='pass'||v==='know'||v==='yes'||v==='meet'||(typeof v==='number'&&v>=3);
+  const valMap={pass:'✅',fail:'❌',know:'✅',notknow:'❌',yes:'✅',no:'❌',meet:'✅',notmeet:'❌'};
+  const allQItems=CHECKLIST_SECTIONS.flatMap(s=>s.items.filter(i=>i.type!=='text'));
+
+  document.getElementById('m-tbody').innerHTML=page.map(r=>{
+    const clVals=r.checklist&&r.checklist.values?r.checklist.values:{};
+    const answered=allQItems.filter(i=>clVals[i.id]!==undefined).length;
+    const passed=allQItems.filter(i=>clVals[i.id]!==undefined&&isPass(clVals[i.id])).length;
+    const pct=allQItems.length?Math.round(passed/allQItems.length*100):0;
+    const col=pct>=80?'var(--green)':pct>=60?'var(--orange)':'var(--red)';
+
+    const clId=`cl-${r.id}`;
+    const clDetail=CHECKLIST_SECTIONS.map(sec=>{
+      const qItems=sec.items.filter(i=>i.type!=='text');
+      if(!qItems.length) return '';
+      return `<div style="margin-bottom:5px;">
+        <div style="font-size:9px;font-weight:700;color:var(--blue);margin-bottom:2px;">${sec.icon} ${sec.title}</div>
+        ${qItems.map(item=>{
+          const v=clVals[item.id];
+          const icon=v===undefined?'⬜':typeof v==='number'?`⭐${v}`:(valMap[v]||'–');
+          const pass=v!==undefined&&isPass(v);
+          return `<div style="display:flex;align-items:center;gap:4px;padding:2px 0;border-bottom:1px solid rgba(0,0,0,0.05);">
+            <span style="font-size:11px;flex-shrink:0;">${icon}</span>
+            <span style="font-size:10px;color:${pass?'var(--text)':'var(--muted)'};${v!==undefined&&!pass?'text-decoration:line-through':''}">${item.label}</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('');
+
+    return `<tr>
+      <td><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;">${r.dateStr}</div><div style="font-size:10px;color:var(--muted);">${r.timeStr} น.</div></td>
+      <td><div class="sel-badge"><div class="sel-av">${r.seller.initials}</div>${r.seller.name.split(' ')[0]}</div></td>
+      <td><div style="font-weight:600;font-size:12px;">${r.store}</div><div style="font-size:10px;color:var(--muted);">${r.storeType||'–'}</div></td>
+      <td style="font-size:11px;">${r.province||'–'}</td>
+      <td>
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <div style="display:flex;align-items:center;gap:5px;">
+            <div style="width:55px;background:var(--border);border-radius:3px;height:11px;overflow:hidden;">
+              <div style="height:100%;width:${Math.round(answered/allQItems.length*100)}%;background:var(--blue);border-radius:3px;"></div>
+            </div>
+            <span style="font-size:10px;font-weight:700;color:var(--blue);min-width:32px;">${Math.round(answered/allQItems.length*100)}%</span>
+            <span style="font-size:10px;color:var(--muted);">ตอบ ${answered}/${allQItems.length}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <div style="width:55px;background:var(--border);border-radius:3px;height:11px;overflow:hidden;">
+              <div style="height:100%;width:${pct}%;background:${col};border-radius:3px;"></div>
+            </div>
+            <span style="font-size:10px;font-weight:700;color:${col};min-width:32px;">${pct}%</span>
+            <span style="font-size:10px;color:var(--muted);">ผ่าน ${passed}/${allQItems.length}</span>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div class="ph-strip">
+          ${[...Array(Math.min(r.numPhotos,3))].map((_,i)=>r.photos[i]
+            ?`<img src="${r.photos[i]}" onclick="lbOpenRecord(${r.id},${i})" style="width:32px;height:32px;border-radius:5px;object-fit:cover;cursor:pointer;transition:transform .2s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">`
+            :`<div class="ph-box">${r.emoji}</div>`).join('')}
+          ${r.numPhotos>3?`<div class="ph-more" onclick="lbOpenRecord(${r.id},0)" style="cursor:pointer;">+${r.numPhotos-3}</div>`:''}
+        </div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px;">${r.numPhotos} รูป</div>
+      </td>
+      <td style="max-width:140px;font-size:11px;color:var(--muted);">${r.note||'–'}</td>
+      <td style="min-width:160px;vertical-align:top;padding-top:8px;">
+        <button onclick="toggleCL('${clId}')" style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:7px;border:1.5px solid var(--border);background:white;color:var(--blue);cursor:pointer;font-family:'Sarabun',sans-serif;white-space:nowrap;">
+          📋 แสดงเช็คลิสต์
+        </button>
+        <div id="${clId}" style="display:none;margin-top:6px;">${clDetail}</div>
+      </td>
+    </tr>`;
+  }).join('')||`<tr><td colspan="8"><div class="empty-state"><div class="ei">🔍</div>ไม่พบข้อมูล</div></td></tr>`;
+  mRenderPG();
+}
+function mRenderPG(){
+  const total=Math.ceil(mFiltered.length/M_PAGE);
+  if(total<=1){document.getElementById('m-pg').innerHTML='';return;}
+  let h='';
+  if(mPage>1) h+=`<button class="pg-btn" onclick="mGoP(${mPage-1})">‹</button>`;
+  for(let i=1;i<=total;i++){
+    if(i===1||i===total||Math.abs(i-mPage)<=1) h+=`<button class="pg-btn ${i===mPage?'active':''}" onclick="mGoP(${i})">${i}</button>`;
+    else if(Math.abs(i-mPage)===2) h+=`<span style="color:var(--muted);font-size:11px;padding:0 2px;">…</span>`;
+  }
+  if(mPage<total) h+=`<button class="pg-btn" onclick="mGoP(${mPage+1})">›</button>`;
+  document.getElementById('m-pg').innerHTML=h;
+}
+function mGoP(n){mPage=n;mRenderTable();}
+function mExport(){
+  const rows=[['วันที่','เวลา','เซลล์','ร้านค้า','ประเภท','จังหวัด','วัตถุประสงค์','จำนวนรูป','บันทึก']];
+  mFiltered.forEach(r=>rows.push([r.dateStr,r.timeStr,r.seller.name,r.store,r.storeType||'',r.province||'',r.purposes.join(' | '),r.numPhotos,r.note||'']));
+  const csv='\uFEFF'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`store_visit_report_${fmtD(new Date()).replace(/\//g,'-')}.csv`;
+  a.click();
+}
+
+function toggleCL(id){
+  const el=document.getElementById(id);
+  const btn=el.previousElementSibling;
+  if(el.style.display==='none'){
+    el.style.display='block';
+    btn.textContent='🔼 ซ่อนเช็คลิสต์';
+    btn.style.background='var(--blue3)';
+  } else {
+    el.style.display='none';
+    btn.textContent='📋 แสดงเช็คลิสต์';
+    btn.style.background='white';
+  }
+}
+
+/* Init name dropdown */
+populateNames();
+
+function lbOpenRecord(recordId, startIdx){
+  const rec=[...allRecords,...myRecords].find(r=>r.id===recordId||r.id===String(recordId));
+  if(!rec||!rec.photos||!rec.photos.length) return;
+  const photos=rec.photos.map(src=>({src,store:rec.store,date:rec.dateStr}));
+  lbOpen(photos, startIdx, rec.store);
+}
+
+function mNav(page, el){
+  // active menu
+  document.querySelectorAll('.ms-item').forEach(i=>i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  // show panel
+  document.querySelectorAll('.m-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('mp-'+page).classList.add('active');
+  // update topbar title
+  const titles={overview:'📊 ภาพรวมการเยี่ยมร้านค้า',seller:'👥 รายเซลล์',province:'🗺️ รายจังหวัด',store:'🏪 รายร้านค้า',photos:'📷 คลังรูปภาพ'};
+  document.querySelector('.m-topbar-title').textContent = titles[page]||'';
+  // render panel content
+  if(page==='seller') mRenderSeller();
+  if(page==='province') mRenderProvince();
+  if(page==='store') mRenderStore();
+  if(page==='photos') mRenderPhotos();
+}
+
+function mRenderSeller(){
+  const stats={};
+  mFiltered.forEach(r=>{
+    if(!stats[r.seller.id]) stats[r.seller.id]={seller:r.seller,visits:0,photos:0,stores:new Set(),last:null};
+    stats[r.seller.id].visits++;
+    stats[r.seller.id].photos+=r.numPhotos;
+    stats[r.seller.id].stores.add(r.store);
+    if(!stats[r.seller.id].last||r.date>stats[r.seller.id].last) stats[r.seller.id].last=r.date;
+  });
+  const sorted=Object.values(stats).sort((a,b)=>b.visits-a.visits);
+  document.getElementById('seller-tbody').innerHTML=sorted.map(s=>`
+    <tr>
+      <td><div class="sel-badge"><div class="sel-av">${s.seller.initials}</div>${s.seller.name}</div></td>
+      <td style="font-size:11px;color:var(--muted);">${s.seller.zone}</td>
+      <td><strong style="color:var(--blue);font-family:'IBM Plex Mono',monospace;">${s.visits}</strong></td>
+      <td style="font-family:'IBM Plex Mono',monospace;">${s.photos}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;">${s.stores.size}</td>
+      <td style="font-size:11px;color:var(--muted);">${s.last?fmtD(s.last):'–'}</td>
+    </tr>`).join('')||`<tr><td colspan="6"><div class="empty-state"><div class="ei">👥</div>ไม่มีข้อมูล</div></td></tr>`;
+  // bar chart
+  const max=sorted[0]?.visits||1;
+  document.getElementById('m-chart-seller2').innerHTML=sorted.map(s=>`
+    <div class="bar-row">
+      <div class="bar-name">${s.seller.name.split(' ')[0]}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(s.visits/max*100).toFixed(1)}%"><span class="bar-val">${s.visits}</span></div></div>
+      <div class="bar-n">${s.visits}</div>
+    </div>`).join('');
+}
+
+function mRenderProvince(){
+  const stats={};
+  mFiltered.forEach(r=>{
+    const pv=r.province||'ไม่ระบุ';
+    if(!stats[pv]) stats[pv]={visits:0,photos:0,stores:new Set(),sellers:new Set()};
+    stats[pv].visits++;
+    stats[pv].photos+=r.numPhotos;
+    stats[pv].stores.add(r.store);
+    stats[pv].sellers.add(r.seller.name);
+  });
+  const sorted=Object.entries(stats).sort((a,b)=>b[1].visits-a[1].visits);
+  // KPI grid
+  document.getElementById('prov-kpi-grid').innerHTML=sorted.map(([pv,s],i)=>`
+    <div class="kpi">
+      <div class="kpi-icon">${['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'][i]||'📍'}</div>
+      <div class="kpi-num kn-blue">${s.visits}</div>
+      <div class="kpi-label">${pv}</div>
+      <div class="kbadge kb-g">📷 ${s.photos} รูป</div>
+    </div>`).join('');
+  // Table
+  document.getElementById('prov-tbody').innerHTML=sorted.map(([pv,s])=>`
+    <tr>
+      <td style="font-weight:600;">${pv}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:var(--blue);font-weight:700;">${s.visits}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;">${s.stores.size}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;">${s.photos}</td>
+      <td style="font-size:11px;color:var(--muted);">${[...s.sellers].join(', ')}</td>
+    </tr>`).join('')||`<tr><td colspan="5"><div class="empty-state"><div class="ei">🗺️</div>ไม่มีข้อมูล</div></td></tr>`;
+}
+
+function mRenderStore(){
+  const stats={};
+  mFiltered.forEach(r=>{
+    const k=r.store;
+    if(!stats[k]) stats[k]={store:r.store,type:r.storeType,province:r.province,visits:0,photos:0,last:null};
+    stats[k].visits++;
+    stats[k].photos+=r.numPhotos;
+    if(!stats[k].last||r.date>stats[k].last) stats[k].last=r.date;
+  });
+  const sorted=Object.values(stats).sort((a,b)=>b.visits-a.visits);
+  document.getElementById('store-tbody').innerHTML=sorted.map(s=>`
+    <tr>
+      <td style="font-weight:600;">${s.store}</td>
+      <td style="font-size:11px;color:var(--muted);">${s.type||'–'}</td>
+      <td style="font-size:12px;">${s.province||'–'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:var(--blue);font-weight:700;">${s.visits}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;">${s.photos}</td>
+      <td style="font-size:11px;color:var(--muted);">${s.last?fmtD(s.last):'–'}</td>
+    </tr>`).join('')||`<tr><td colspan="6"><div class="empty-state"><div class="ei">🏪</div>ไม่มีข้อมูล</div></td></tr>`;
+}
+
+function mRenderPhotos(){
+  const recs=mFiltered.filter(r=>r.photos&&r.photos.length>0);
+  document.getElementById('photo-gallery-sub').textContent=`รูปภาพทั้งหมด ${recs.reduce((a,r)=>a+r.photos.length,0)} รูป`;
+  if(!recs.length){
+    document.getElementById('photo-gallery').innerHTML='<div class="empty-state" style="grid-column:1/-1;"><div class="ei">📷</div>ยังไม่มีรูปภาพในช่วงเวลาที่เลือก</div>';
+    return;
+  }
+  let allGalleryPhotos=[];
+  recs.forEach(r=>{r.photos.forEach(url=>{allGalleryPhotos.push({src:url,store:r.store,date:r.dateStr});});});
+  document.getElementById('photo-gallery-sub').textContent=`รูปภาพทั้งหมด ${allGalleryPhotos.length} รูป`;
+  if(!allGalleryPhotos.length){
+    document.getElementById('photo-gallery').innerHTML='<div class="empty-state" style="grid-column:1/-1;"><div class="ei">📷</div>ยังไม่มีรูปภาพในช่วงเวลาที่เลือก</div>';
+    return;
+  }
+  window._galleryPhotos = allGalleryPhotos;
+  document.getElementById('photo-gallery').innerHTML=allGalleryPhotos.map((ph,i)=>`
+    <div onclick="lbOpen(window._galleryPhotos,${i})" style="border-radius:10px;overflow:hidden;aspect-ratio:1;position:relative;background:var(--blue3);cursor:pointer;transition:transform .2s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      <img src="${ph.src}" style="width:100%;height:100%;object-fit:cover;">
+      <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.55);padding:4px 6px;">
+        <div style="font-size:9px;color:white;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ph.store}</div>
+        <div style="font-size:8px;color:rgba(255,255,255,0.75);font-family:'IBM Plex Mono',monospace;">${ph.date}</div>
+      </div>
+    </div>`).join('');
+}
+</script>
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="lbClose()">
+  <button class="lb-close" onclick="lbClose()">✕</button>
+  <button class="lb-nav lb-prev" onclick="lbNav(-1);event.stopPropagation()">‹</button>
+  <img class="lb-img" id="lb-img" src="" alt="" onclick="event.stopPropagation()">
+  <button class="lb-nav lb-next" onclick="lbNav(1);event.stopPropagation()">›</button>
+  <div class="lb-info" id="lb-info"></div>
+</div>
+
+<script>
+/* ── Lightbox ── */
+let lbPhotos=[], lbIdx=0;
+
+function lbOpen(photos, idx, storeName){
+  lbPhotos=photos; lbIdx=idx;
+  lbShow(storeName);
+  document.getElementById('lightbox').classList.add('show');
+  document.addEventListener('keydown', lbKey);
+}
+function lbClose(){
+  document.getElementById('lightbox').classList.remove('show');
+  document.removeEventListener('keydown', lbKey);
+}
+function lbNav(dir){
+  lbIdx=(lbIdx+dir+lbPhotos.length)%lbPhotos.length;
+  lbShow();
+}
+function lbShow(storeName){
+  const img=document.getElementById('lb-img');
+  img.style.transform='scale(0.92)';
+  setTimeout(()=>img.style.transform='scale(1)',10);
+  img.src=lbPhotos[lbIdx].src;
+  document.getElementById('lb-info').textContent=`${lbPhotos[lbIdx].store||storeName||''} · รูปที่ ${lbIdx+1}/${lbPhotos.length}`;
+}
+function lbKey(e){
+  if(e.key==='ArrowLeft') lbNav(-1);
+  if(e.key==='ArrowRight') lbNav(1);
+  if(e.key==='Escape') lbClose();
+}
+</script>
+</body>
+</html>
